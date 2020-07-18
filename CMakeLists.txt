@@ -112,7 +112,7 @@ MACRO (download_freetype)
     endif()
 ENDMACRO()
 
-project(flamegpu2_visualiser CUDA CXX)
+project(sodoku_visualiser CXX)
 
 include(FindOpenGL)
 if (NOT TARGET OpenGL::GL)
@@ -188,7 +188,6 @@ find_package(Threads REQUIRED)
 
 # Prepare list of include files
 SET(VISUALISER_INCLUDE
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/FLAMEGPU_Visualisation.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/config/AgentStateConfig.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/config/ModelConfig.h
     ${CMAKE_CURRENT_SOURCE_DIR}/include/config/LineConfig.h
@@ -197,10 +196,12 @@ SET(VISUALISER_INCLUDE
 )
 # Prepare list of source files
 SET(VISUALISER_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/BoardOverlay.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/BoardOverlay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Visualiser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util/VisException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util/Resources.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/FLAMEGPU_Visualisation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Visualiser.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/config/AgentStateConfig.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/config/ModelConfig.cpp
@@ -209,6 +210,7 @@ SET(VISUALISER_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util/warnings.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util/fonts.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util/fonts.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/util/MouseButtonState.h
     # .h from sdl_exp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/camera/NoClipCamera.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interface/Camera.h
@@ -295,7 +297,7 @@ if (NOT UNIX)
     add_compile_definitions(_CRT_SECURE_NO_WARNINGS)
 endif ()
 # Define output
-add_library("${PROJECT_NAME}" STATIC ${VISUALISER_ALL})
+add_executable("${PROJECT_NAME}" ${VISUALISER_ALL})
 # Set up include dirs
 target_include_directories("${PROJECT_NAME}" SYSTEM PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/glm-src)
 target_include_directories("${PROJECT_NAME}" SYSTEM PRIVATE ${SDL2_INCLUDE_DIRS})
@@ -335,6 +337,26 @@ if(WIN32)
 target_link_libraries("${PROJECT_NAME}" "dwrite.lib")
 endif()
 
+# Copy DLLs
+if(WIN32)
+    # sdl
+    set(SDL2_DIR ${CMAKE_CURRENT_BINARY_DIR}/sdl2)
+    mark_as_advanced(FORCE SDL2_DIR)
+    find_package(SDL2 REQUIRED)   
+    add_custom_command(TARGET "${PROJECT_NAME}" POST_BUILD        # Adds a post-build event to MyTest
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different             # which executes "cmake - E copy_if_different..."
+            "${SDL2_RUNTIME_LIBRARIES}"                           # <--this is in-file
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>)                   # <--this is out-file path
+    # glew
+    set(GLEW_DIR ${CMAKE_CURRENT_BINARY_DIR}/glew)
+    mark_as_advanced(FORCE GLEW_DIR)
+    find_package(GLEW REQUIRED)   
+    add_custom_command(TARGET "${PROJECT_NAME}" POST_BUILD        # Adds a post-build event to MyTest
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different             # which executes "cmake - E copy_if_different..."
+            "${GLEW_RUNTIME_LIBRARIES}"                           # <--this is in-file
+            $<TARGET_FILE_DIR:${PROJECT_NAME}>)                   # <--this is out-file path
+endif()
+
 
 # Enable parallel compilation
 if (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
@@ -346,6 +368,7 @@ endif ()
 # NOTE: The build step for resources embeds them as base64, this should not be used for large files.
 include(cmake/CMakeRC/CMakeRC.cmake)
 SET(RESOURCES_ALL
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/sodoku_board.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/instanced_default.vert
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/material_flat.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/material_phong.frag

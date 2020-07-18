@@ -12,6 +12,7 @@
 inline static void HandleGLError(const char *file, int line) {
     GLuint error = glGetError();
     if (error != GL_NO_ERROR) {
+        printf("%s(%i) GL Error Occurred;\n%s\n", file, line, reinterpret_cast<const char *>(gluErrorString(error)));
         throw GLError("%s(%i) GL Error Occurred;\n%s\n", file, line, reinterpret_cast<const char *>(gluErrorString(error)));
     }
 }

@@ -1,8 +1,10 @@
 #include "Visualiser.h"
 #include "util/cuda.h"
 #include "util/fonts.h"
+#include "util/MouseButtonState.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+
 
 #define FOVY 60.0f
 #define DELTA_THETA_PHI 0.01f
@@ -16,85 +18,25 @@
 #define DEFAULT_WINDOW_WIDTH 1280
 #define DEFAULT_WINDOW_HEIGHT 720
 
-Visualiser::Visualiser(const ModelConfig& modelcfg)
-    : hud(std::make_shared<HUD>(modelcfg.windowDimensions[0], modelcfg.windowDimensions[1]))
-    , camera(std::make_shared<NoClipCamera>(*reinterpret_cast<const glm::vec3*>(&modelcfg.cameraLocation[0]), *reinterpret_cast<const glm::vec3*>(&modelcfg.cameraTarget[0])))
-    // , scene(nullptr)
+Visualiser::Visualiser()
+    : hud(std::make_shared<HUD>(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT))
+    , camera()
     , isInitialised(false)
     , continueRender(false)
     , msaaState(true)
-    , windowTitle(modelcfg.windowTitle)
-    , windowDims(modelcfg.windowDimensions[0], modelcfg.windowDimensions[1])
+    , windowTitle("Sodoku Visualiser")
+    , windowDims(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
     , fpsDisplay(nullptr)
-    , stepDisplay(nullptr)
-    , modelConfig(modelcfg) {
+    , sodoku_board(nullptr) {
     this->isInitialised = this->init();
-    BackBuffer::setClear(true, *reinterpret_cast<const glm::vec3*>(&modelcfg.clearColor[0]));
-    if (modelcfg.fpsVisible) {
-        fpsDisplay = std::make_shared<Text>("", 10, *reinterpret_cast<const glm::vec3 *>(&modelcfg.fpsColor[0]), fonts::findFont({"Arial"}, fonts::GenericFontFamily::SANS).c_str());
+    BackBuffer::setClear(true, glm::vec3(0.8f));
+    if (true) {
+        fpsDisplay = std::make_shared<Text>("", 10, glm::vec3(0), fonts::findFont({"Arial"}, fonts::GenericFontFamily::SANS).c_str());
         fpsDisplay->setUseAA(false);
         hud->add(fpsDisplay, HUD::AnchorV::South, HUD::AnchorH::East, glm::ivec2(0), INT_MAX);
     }
-    if (modelcfg.stepVisible) {
-        stepDisplay = std::make_shared<Text>("", 10, *reinterpret_cast<const glm::vec3 *>(&modelcfg.fpsColor[0]), fonts::findFont({"Arial"}, fonts::GenericFontFamily::SANS).c_str());
-        stepDisplay->setUseAA(false);
-        hud->add(stepDisplay, HUD::AnchorV::South, HUD::AnchorH::East, glm::ivec2(0, modelcfg.fpsVisible ? 10 : 0), INT_MAX);
-    }
-    lines = std::make_shared<Draw>();
-    lines->setViewMatPtr(camera->getViewMatPtr());
-    lines->setProjectionMatPtr(&this->projMat);
-    // Process static models
-    for (auto &sm : modelcfg.staticModels) {
-        std::shared_ptr<Entity> entity;
-        if (sm->texture.empty()) {
-            // Entity does not have a texture
-            entity = std::make_shared<Entity>(
-                sm->path.c_str(),
-                *reinterpret_cast<const glm::vec3*>(sm->scale),
-                std::make_shared<Shaders>(
-                    "resources/default.vert",
-                    "resources/material_flat.frag"));
-            entity->setMaterial(glm::vec3(0.1f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.7f));
-        } else {
-            // Entity has texture
-            entity = std::make_shared<Entity>(
-                sm->path.c_str(),
-                *reinterpret_cast<const glm::vec3*>(&sm->scale),
-                std::make_shared<Shaders>(
-                    "resources/default.vert",
-                    "resources/material_phong.frag"),
-                Texture2D::load(sm->texture));
-        }
-        if (entity) {
-            entity->setLocation(*reinterpret_cast<const glm::vec3*>(sm->location));
-            entity->setRotation(*reinterpret_cast<const glm::vec4*>(sm->rotation));
-            entity->setViewMatPtr(camera->getViewMatPtr());
-            entity->setProjectionMatPtr(&this->projMat);
-            // entity->setLightsBuffer(this->lighting);  //  No lighting yet
-
-            staticModels.push_back(entity);
-        }
-    }
-    // Process lines
-    for (auto &line : modelcfg.lines) {
-        // Check it's valid
-        if (line->lineType == LineConfig::Type::Polyline) {
-            if (line->vertices.size() < 6 || line->vertices.size() % 3 != 0 || line->colors.size() % 4 != 0 || (line->colors.size() / 4) * 3 != line->vertices.size()) {
-                THROW SketchError("Polyline sketch contains invalid number of vertices (%d/3) or colours (%d/4).\n", line->vertices.size(), line->colors.size());
-            }
-        } else if (line->lineType == LineConfig::Type::Lines) {
-            if (line->vertices.size() < 6 || line->vertices.size() % 6 != 0 || line->colors.size() % 4 != 0 || (line->colors.size() / 4) * 3 != line->vertices.size()) {
-                THROW SketchError("Lines sketch contains invalid number of vertices (%d/3) or colours (%d/4).\n", line->vertices.size(), line->colors.size());
-            }
-        }
-        // Convert to Draw
-        lines->begin(line->lineType == LineConfig::Type::Polyline ? Draw::Type::Polyline : Draw::Type::Lines, std::to_string(totalLines++));
-        for (size_t i = 0; i < line->vertices.size() / 3; ++i) {
-            lines->color(*reinterpret_cast<const glm::vec4*>(&line->colors[i * 4]));
-            lines->vertex(*reinterpret_cast<const glm::vec3*>(&line->vertices[i * 3]));
-        }
-        lines->save();
-    }
+    sodoku_board = std::make_shared<BoardOverlay>();
+    hud->add(sodoku_board, HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), INT_MAX);
 }
 Visualiser::~Visualiser() {
     this->close();
@@ -144,8 +86,6 @@ void Visualiser::run() {
         printf("Visulisation not initialised yet.\n");
     // } else if (!this->scene) {
     //     printf("Scene not yet set.\n");
-    } else if (agentStates.size() == 0) {
-        printf("No agents set to render.\n");
     } else {
         // Recreate window in current thread (else IO fails)
         if (this->window) {
@@ -174,8 +114,6 @@ void Visualiser::run() {
             while (this->continueRender) {
                 //  Update the fps in the window title
                 this->updateFPS();
-                if (this->stepDisplay)
-                    this->stepDisplay->setString("Step %u", stepCount);
                 this->render();
             }
             SDL_StopTextInput();
@@ -191,12 +129,13 @@ void Visualiser::run() {
             // Hide window
             SDL_HideWindow(window);
             //  New, might not be required
-            SDL_DestroyWindow(this->window);
-            this->window = nullptr;
+            //SDL_DestroyWindow(this->window);
+            //this->window = nullptr;
         }
     }
 }
 void Visualiser::render() {
+    static MouseButtonState last_buttons;
     // Static fn var for tracking the time to send to scene->update()
     static unsigned int updateTime = 0;
     const unsigned int t_updateTime = SDL_GetTicks();
@@ -206,32 +145,26 @@ void Visualiser::render() {
     SDL_Event e;
     //  Handle continuous key presses (movement)
     const Uint8 *state = SDL_GetKeyboardState(NULL);
-    float speed = modelConfig.cameraSpeed[0];
-    if (state[SDL_SCANCODE_LSHIFT]) {
-        speed *= modelConfig.cameraSpeed[1];
-    }
-    if (state[SDL_SCANCODE_LCTRL]) {
-        speed /= modelConfig.cameraSpeed[1];
-    }
-    const float distance = speed * static_cast<float>(frameTime);
-    if (state[SDL_SCANCODE_W]) {
-        this->camera->move(distance);
-    }
-    if (state[SDL_SCANCODE_A]) {
-        this->camera->strafe(-distance);
-    }
-    if (state[SDL_SCANCODE_S]) {
-        this->camera->move(-distance);
-    }
-    if (state[SDL_SCANCODE_D]) {
-        this->camera->strafe(distance);
-    }
-    if (state[SDL_SCANCODE_Q]) {
-        this->camera->roll(-DELTA_ROLL);
-    }
-    if (state[SDL_SCANCODE_E]) {
-        this->camera->roll(DELTA_ROLL);
-    }
+    //float speed = modelConfig.cameraSpeed[0];
+    //const float distance = speed * static_cast<float>(frameTime);
+    //if (state[SDL_SCANCODE_W]) {
+    //    this->camera->move(distance);
+    //}
+    //if (state[SDL_SCANCODE_A]) {
+    //    this->camera->strafe(-distance);
+    //}
+    //if (state[SDL_SCANCODE_S]) {
+    //    this->camera->move(-distance);
+    //}
+    //if (state[SDL_SCANCODE_D]) {
+    //    this->camera->strafe(distance);
+    //}
+    //if (state[SDL_SCANCODE_Q]) {
+    //    this->camera->roll(-DELTA_ROLL);
+    //}
+    //if (state[SDL_SCANCODE_E]) {
+    //    this->camera->roll(DELTA_ROLL);
+    //}
     // if (state[SDL_SCANCODE_SPACE]) {
     //     this->camera->ascend(distance);
     // }
@@ -258,27 +191,37 @@ void Visualiser::render() {
         break;
         // case SDL_MOUSEWHEEL:
         // break;
-        case SDL_MOUSEMOTION:
-            this->handleMouseMove(e.motion.xrel, e.motion.yrel);
-            break;
+        case SDL_MOUSEMOTION: {
+            //this->handleMouseMove(e.motion.xrel, e.motion.yrel);
+            int x = 0;
+            int y = 0;
+            int button_state = SDL_BUTTON(SDL_GetMouseState(&x, &y));
+            if (button_state) {
+                memcpy(&last_buttons, &button_state, sizeof(int));
+                hud->handleMouseDrag(x, y, last_buttons);
+            }
+            break;            
+        }
         case SDL_MOUSEBUTTONDOWN:
-            this->toggleMouseMode();
+        case SDL_MOUSEBUTTONUP: {
+            //this->toggleMouseMode();
+            int x = 0;
+            int y = 0;
+            int button_state = SDL_BUTTON(SDL_GetMouseState(&x, &y));
+            if (e.type == SDL_MOUSEBUTTONDOWN) {
+                memcpy(&last_buttons, &button_state, sizeof(int));
+                hud->handleMouseDown(x, y, last_buttons);
+            } else {
+                hud->handleMouseUp(x, y, last_buttons);
+                memcpy(&last_buttons, &button_state, sizeof(int));
+            }
             break;
+        }
         }
     }
     //  render
     BackBuffer::useStatic();
-    for (auto &sm : staticModels)
-        sm->render();
-    renderAgentStates();
-    // Render lines last, as they may contain alpha
-    if (renderLines) {
-        GL_CALL(glEnable(GL_BLEND));
-        GL_CALL(glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA));
-        for (unsigned int i = 0; i < totalLines; ++i)
-            lines->render(std::to_string(i));
-        GL_CALL(glDisable(GL_BLEND));
-    }
+    
     GL_CALL(glViewport(0, 0, windowDims.x, windowDims.y));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     this->hud->render();
@@ -291,88 +234,6 @@ void Visualiser::render() {
 bool Visualiser::isRunning() const {
     return continueRender;
 }
-void Visualiser::addAgentState(const std::string &agent_name, const std::string &state_name, const AgentStateConfig &vc) {
-    std::pair<std::string, std::string> namepair = { agent_name, state_name };
-    GL_CHECK();
-    agentStates.emplace(std::make_pair(namepair, RenderInfo(vc)));
-    //  Allocate entity
-    auto &ent = agentStates.at(namepair).entity;
-    ent->setViewMatPtr(camera->getViewMatPtr());
-    ent->setProjectionMatPtr(&this->projMat);
-    // ent->setLightsBuffer(this->lighting);  //  No lighting yet
-}
-
-void Visualiser::renderAgentStates() {
-    std::lock_guard<std::mutex> *guard = nullptr;
-    if (!pause_guard)
-        guard = new std::lock_guard<std::mutex>(render_buffer_mutex);
-    // Resize if necessary
-    for (auto &_as : agentStates) {
-        auto &as = _as.second;
-        // resize buffers
-        if (!as.x_var || as.x_var->elementCount < as.requiredSize) {
-            //  Decide new buff size
-            unsigned int newSize = !as.x_var || as.x_var->elementCount == 0 ? 1024 : as.x_var->elementCount;
-            while (newSize < as.requiredSize) {
-                newSize = static_cast<unsigned int>(newSize * 1.5f);
-            }
-            GL_CHECK();
-            //  Free old buffs
-            if (as.x_var && as.x_var->d_mappedPointer)
-                freeGLInteropTextureBuffer(as.x_var);
-            if (as.y_var && as.y_var->d_mappedPointer)
-                freeGLInteropTextureBuffer(as.y_var);
-            if (as.z_var && as.z_var->d_mappedPointer)
-                freeGLInteropTextureBuffer(as.z_var);
-            GL_CHECK();
-            //  Alloc new buffs (this needs to occur in other thread!!!)
-            as.x_var = mallocGLInteropTextureBuffer<float>(newSize, 1);
-            as.y_var = mallocGLInteropTextureBuffer<float>(newSize, 1);
-            as.z_var = mallocGLInteropTextureBuffer<float>(newSize, 1);
-            //  Bind texture name to texture unit
-            GL_CALL(glActiveTexture(GL_TEXTURE0 + as.tex_unit_offset + 0));
-            GL_CALL(glBindTexture(GL_TEXTURE_BUFFER, as.x_var->glTexName));
-            GL_CALL(glActiveTexture(GL_TEXTURE0));
-            GL_CALL(glActiveTexture(GL_TEXTURE0 + as.tex_unit_offset + 1));
-            GL_CALL(glBindTexture(GL_TEXTURE_BUFFER, as.y_var->glTexName));
-            GL_CALL(glActiveTexture(GL_TEXTURE0));
-            GL_CALL(glActiveTexture(GL_TEXTURE0 + as.tex_unit_offset + 2));
-            GL_CALL(glBindTexture(GL_TEXTURE_BUFFER, as.z_var->glTexName));
-            GL_CALL(glActiveTexture(GL_TEXTURE0));
-            auto shader_vec = as.entity->getShaders();
-            GL_CHECK();
-            shader_vec->addTexture("x_pos", GL_TEXTURE_BUFFER, as.x_var->glTexName, as.tex_unit_offset + 0);
-            shader_vec->addTexture("y_pos", GL_TEXTURE_BUFFER, as.y_var->glTexName, as.tex_unit_offset + 1);
-            shader_vec->addTexture("z_pos", GL_TEXTURE_BUFFER, as.z_var->glTexName, as.tex_unit_offset + 2);
-            GL_CHECK();
-        }
-    }
-    //  Render agents
-    for (auto &as : agentStates) {
-        if (as.second.x_var)  // Extra check to make sure buffer has been allocated successfully
-            as.second.entity->renderInstances(as.second.requiredSize);
-    }
-    if (guard)
-        delete guard;
-}
-void Visualiser::requestBufferResizes(const std::string &agent_name, const std::string &state_name, const unsigned buffLen) {
-    std::pair<std::string, std::string> namepair = { agent_name, state_name };
-    auto &as = agentStates.at(namepair);
-    as.requiredSize = buffLen;
-}
-void Visualiser::updateAgentStateBuffer(const std::string &agent_name, const std::string &state_name, const unsigned buffLen, float *d_x, float *d_y, float *d_z) {
-    std::pair<std::string, std::string> namepair = { agent_name, state_name };
-    auto &as = agentStates.at(namepair);
-
-    //  Copy Data
-    if (as.x_var && as.x_var->elementCount >= buffLen) {  //  This may fail for a single frame occasionally
-        visassert(_cudaMemcpyDeviceToDevice(as.x_var->d_mappedPointer, d_x, buffLen * sizeof(float)));
-        visassert(_cudaMemcpyDeviceToDevice(as.y_var->d_mappedPointer, d_y, buffLen * sizeof(float)));
-        visassert(_cudaMemcpyDeviceToDevice(as.z_var->d_mappedPointer, d_z, buffLen * sizeof(float)));
-    }
-}
-//  Used in method above
-unsigned int Visualiser::RenderInfo::instanceCounter = 0;
 
 //  Items taken from sdl_exp
 bool Visualiser::init() {
@@ -458,8 +319,7 @@ void Visualiser::resizeWindow() {
         glm::radians(FOVY),
         static_cast<float>(this->windowDims.x),
         static_cast<float>(this->windowDims.y),
-        modelConfig.nearFarClip[0],
-        modelConfig.nearFarClip[1]);
+        0.05f, 5000);
     //  Notify other elements
     this->hud->resizeWindow(this->windowDims);
     //  if (this->scene)
@@ -467,14 +327,9 @@ void Visualiser::resizeWindow() {
     resizeBackBuffer(this->windowDims);
 }
 void Visualiser::deallocateGLObjects() {
+    sodoku_board.reset();
     fpsDisplay.reset();
-    stepDisplay.reset();
     this->hud->clear();
-    // Don't clear the map, as update buffer methods might still be called
-    for (auto &as : agentStates) {
-        as.second.entity.reset();
-    }
-    this->lines.reset();
 }
 
 void Visualiser::close() {
@@ -501,9 +356,9 @@ void Visualiser::close() {
     SDL_Quit();
 }
 void Visualiser::handleMouseMove(int x, int y) {
-    if (SDL_GetRelativeMouseMode()) {
-        this->camera->turn(x * MOUSE_SPEED, y * MOUSE_SPEED);
-    }
+    //if (SDL_GetRelativeMouseMode()) {
+    //    this->camera->turn(x * MOUSE_SPEED, y * MOUSE_SPEED);
+    //}
 }
 void Visualiser::handleKeypress(SDL_Keycode keycode, int /*x*/, int /*y*/) {
     // Pass key events to the scene and skip handling if false is returned
@@ -535,9 +390,6 @@ void Visualiser::handleKeypress(SDL_Keycode keycode, int /*x*/, int /*y*/) {
         } else {
             pause_guard = new std::lock_guard<std::mutex>(render_buffer_mutex);
         }
-        break;
-    case SDLK_l:
-        renderLines = !renderLines;
         break;
     default:
         //  Do nothing?
@@ -592,9 +444,6 @@ void Visualiser::updateFPS() {
         this->previousTime = this->currentTime;
         this->frameCount = 0;
     }
-}
-void Visualiser::setStepCount(const unsigned int &_stepCount) {
-    stepCount = _stepCount;
 }
 //  Overrides
 unsigned Visualiser::getWindowWidth() const {

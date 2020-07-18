@@ -9,6 +9,7 @@
 
 #include "util/GLcheck.h"
 
+struct MouseButtonState;
 class Overlay;
 
 /*
@@ -126,12 +127,16 @@ class HUD {
      */
     void resizeWindow(const glm::uvec2 &dims);
 
+    void handleMouseDown(const int &x, const int &y, const MouseButtonState& buttons);
+    void handleMouseUp(const int &x, const int &y, const MouseButtonState& buttons);
+    void handleMouseDrag(const int &x, const int &y, const MouseButtonState& buttons);
  private:
     const glm::mat4 modelViewMat;
     glm::mat4 projectionMat;
     // Holds the overlay elements to be rendered in reverse z-index order
     std::list<std::shared_ptr<Item>> stack;
     glm::uvec2 dims;
+    std::shared_ptr<Item> focused_item;
 };
 
 #endif  // SRC_HUD_H_

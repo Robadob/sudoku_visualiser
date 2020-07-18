@@ -3,6 +3,7 @@
 #include <memory>
 
 #include "texture/Texture2D.h"
+#include "util/MouseButtonState.h"
 #include "HUD.h"
 
 class Shaders;
@@ -49,6 +50,19 @@ class Overlay {
      */
     void setVisible(bool isVisible);
     bool getVisible() const { return visible; }
+
+    /**
+     * If HUD detects mouse click on this item
+     * @param x The x coordinate relative to bottom left corner of item
+     * @param y The y coordinate, relative to bottom left corner of item
+     */
+    virtual void handleMouseDown(const int &x, const int &y, const MouseButtonState &buttons) { }
+    virtual void handleMouseUp(const int &x, const int &y, const MouseButtonState &buttons) { }
+    virtual void handleMouseDrag(const int &x, const int &y, const MouseButtonState &buttons) { }
+    /**
+     * If this item was last clicked on HUD, then a different item was clicked.
+     */
+    virtual void loseFocus() { };
 
  protected:
     /**

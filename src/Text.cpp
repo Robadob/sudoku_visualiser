@@ -37,7 +37,7 @@ Text::Text(const char *_string, unsigned int fontHeight, glm::vec4 color, char c
     }
     FT_Error error = FT_Init_FreeType(&library);
     if (error) {
-        fprintf(stderr, "An unexpected error occured whilst initialising FreeType: %i\n", error);
+        fprintf(stderr, "An unexpected error occurred whilst initialising FreeType: %i\n", error);
         return;
     }
     error = FT_New_Face(library,
@@ -45,7 +45,7 @@ Text::Text(const char *_string, unsigned int fontHeight, glm::vec4 color, char c
         faceIndex,
         &font);
     if (error == FT_Err_Unknown_File_Format) {
-        fprintf(stderr, "The font file %s is of an unsupport format, defaulting to Arial\n", fontFile);
+        fprintf(stderr, "The font file %s is of an unsupported format, defaulting to Arial\n", fontFile);
         fontFile = fonts::findFont({"Arial"}, fonts::GenericFontFamily::SANS).c_str();
         error = FT_New_Face(library,
             fontFile,
