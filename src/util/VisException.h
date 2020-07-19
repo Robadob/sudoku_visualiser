@@ -95,6 +95,11 @@ DERIVED_VisException(SketchError, "Error during sketch!");
  * It reports errors that are due to out of bounds accesses
  */
 DERIVED_VisException(OutOfBounds, "Access out of bounds!");
+/**
+ * Defines a type of object to be thrown as exception.
+ * Errors related to performing validation
+ */
+DERIVED_VisException(ValidationError, "An error occured during validation!");
 
 /**
  * Lazy replacement for assert()

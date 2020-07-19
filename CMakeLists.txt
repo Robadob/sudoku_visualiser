@@ -200,6 +200,8 @@ SET(VISUALISER_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/Board.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/BoardOverlay.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/BoardOverlay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/ConstraintValidator.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/ConstraintValidator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Visualiser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util/VisException.h
@@ -447,12 +449,17 @@ if (CPPLINT)
     # Put within Lint filter
     if (CMAKE_USE_FOLDERS)
       set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-      set_property(TARGET "${PROJECT_NAME}" PROPERTY FOLDER "FLAMEGPU")
+      set_property(TARGET "${PROJECT_NAME}" PROPERTY FOLDER "Sudoku")
       set_property(TARGET "lint_${PROJECT_NAME}" PROPERTY FOLDER "Lint")
       if (TARGET freetype)
-        set_property(TARGET "freetype" PROPERTY FOLDER "FLAMEGPU/Dependencies")
-        set_property(TARGET "resources" PROPERTY FOLDER "FLAMEGPU/Dependencies")
+        set_property(TARGET "freetype" PROPERTY FOLDER "Sudoku/Dependencies")
+        set_property(TARGET "resources" PROPERTY FOLDER "Sudoku/Dependencies")
       endif ()
     endif ()
+    
+    # Set the default (visual studio) debugger configure_file
+    set_target_properties("${PROJECT_NAME}" PROPERTIES VS_DEBUGGER_WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+                                                       VS_DEBUGGER_COMMAND_ARGUMENTS "$<$<CONFIG:Debug>:--gtest_catch_exceptions=0> --gtest_filter=*"
+                                                       VS_STARTUP_PROJECT "${PROJECT_NAME}")
 endif ()
 

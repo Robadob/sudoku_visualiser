@@ -1,5 +1,7 @@
 #include "Board.h"
 
+
+#include "ConstraintValidator.h"
 #include "util/VisException.h"
 
 Board::Board()
@@ -58,8 +60,28 @@ void Board::handleNumberPress(const int &number, bool shift, bool ctrl, bool alt
             // This resets if the number is 0
             c = number;
         }
-        // Tell cell to redraw
-        overlay->queueRedrawCell(selected_cell.x, selected_cell.y);
+        // Tell to validate, this forces redraw all
+        validate();
+    }
+}
+bool Board::validate() {
+    bool result;
+    clearWrong();
+    if (current_mode == None) {
+        result =  true;
+    } else if (current_mode == Vanilla) {
+        result = ConstraintValidator::vanilla(*this);
+    } else {
+        THROW ValidationError("Unexpected Mode\n");
+    }
+    overlay->queueRedrawAllCells();
+    return result;
+}
+void Board::clearWrong() {
+    for (int x = 1; x<= 9; ++x) {
+        for (int y = 1; y<= 9; ++y) {
+            (*this)[x][y].flags.wrong = false;
+        }
     }
 }
 

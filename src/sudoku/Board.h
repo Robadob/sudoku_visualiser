@@ -8,6 +8,11 @@
 class Board {
  public:
     /**
+     * Which collection of validation rules to apply
+     * @note In future this could be converted to a bitmask for individual rules
+     */
+    enum Mode{ None, Vanilla };
+    /**
      * Represents a single number that can be written into a sudoku board
      */
     struct Cell {
@@ -98,8 +103,19 @@ class Board {
      * When number == 0, it is considered delete/reset
      */
     void handleNumberPress(const int &number, bool shift, bool ctrl, bool alt);
+    /**
+     * Validates according to current_mode
+     * Clears wrong flag, and newly sets wrong to True for affected cells
+     * @note This could be improved (in terms of performance) to perform validation tests on the areas affected by the changed cell
+     */
+    bool validate();
+    /**
+     * Clears the wrong flag in all cells
+     */
+    void clearWrong();
 
  private:
+    Mode current_mode = Vanilla;
     /**
      * Selected cell, anything out of bounds [1-9][1-9] counts as disabled
      */
