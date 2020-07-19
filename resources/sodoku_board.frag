@@ -2,6 +2,7 @@
 out vec4 fragColor;
 
 in vec2 texCoords;
+uniform sampler2D _texture;
 
 uniform vec4 _col;
 uniform vec4 _backCol;
@@ -38,11 +39,17 @@ void main()
     // We are cell
     ivec2 cell_index = (big_cell_index * 3) + little_cell_index;
     if (cell_index == selected_cell) {
-      fragColor = vec4(1,0,0,1);
+      fragColor = _selCol;
     } else {
       fragColor = _col;
     }
+    // Apply glyph tex to cell
+    //TextureLod(0) so even if mipmaps gen, we try to use best quality
+    //float tex = textureLod(_texture, vec2(texCoords.x,-texCoords.y),0.0f).r;
+    //Grab a solid pixel, ensure no interpolation
+    ivec2 texDim = textureSize(_texture, 0);
+    float tex = texelFetch(_texture, ivec2(int(texCoords.x*texDim.x),texDim.y-int(texCoords.y*texDim.y)),0).r;
+    fragColor.rgb *= (1-tex);
   }
-  //fragColor = vec4(float(little_cell_index), big_cell_index.y/float(big_cell_width), 0, 1);
 }
 // || (lb.y && ub.y) (lb.x && ub.x )

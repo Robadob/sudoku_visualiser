@@ -129,8 +129,8 @@ void Visualiser::run() {
             // Hide window
             SDL_HideWindow(window);
             //  New, might not be required
-            //SDL_DestroyWindow(this->window);
-            //this->window = nullptr;
+            // SDL_DestroyWindow(this->window);
+            // this->window = nullptr;
         }
     }
 }
@@ -145,26 +145,26 @@ void Visualiser::render() {
     SDL_Event e;
     //  Handle continuous key presses (movement)
     const Uint8 *state = SDL_GetKeyboardState(NULL);
-    //float speed = modelConfig.cameraSpeed[0];
-    //const float distance = speed * static_cast<float>(frameTime);
-    //if (state[SDL_SCANCODE_W]) {
-    //    this->camera->move(distance);
-    //}
-    //if (state[SDL_SCANCODE_A]) {
-    //    this->camera->strafe(-distance);
-    //}
-    //if (state[SDL_SCANCODE_S]) {
-    //    this->camera->move(-distance);
-    //}
-    //if (state[SDL_SCANCODE_D]) {
-    //    this->camera->strafe(distance);
-    //}
-    //if (state[SDL_SCANCODE_Q]) {
-    //    this->camera->roll(-DELTA_ROLL);
-    //}
-    //if (state[SDL_SCANCODE_E]) {
-    //    this->camera->roll(DELTA_ROLL);
-    //}
+    // float speed = modelConfig.cameraSpeed[0];
+    // const float distance = speed * static_cast<float>(frameTime);
+    // if (state[SDL_SCANCODE_W]) {
+    //     this->camera->move(distance);
+    // }
+    // if (state[SDL_SCANCODE_A]) {
+    //     this->camera->strafe(-distance);
+    // }
+    // if (state[SDL_SCANCODE_S]) {
+    //     this->camera->move(-distance);
+    // }
+    // if (state[SDL_SCANCODE_D]) {
+    //     this->camera->strafe(distance);
+    // }
+    // if (state[SDL_SCANCODE_Q]) {
+    //     this->camera->roll(-DELTA_ROLL);
+    // }
+    // if (state[SDL_SCANCODE_E]) {
+    //     this->camera->roll(DELTA_ROLL);
+    // }
     // if (state[SDL_SCANCODE_SPACE]) {
     //     this->camera->ascend(distance);
     // }
@@ -192,22 +192,22 @@ void Visualiser::render() {
         // case SDL_MOUSEWHEEL:
         // break;
         case SDL_MOUSEMOTION: {
-            //this->handleMouseMove(e.motion.xrel, e.motion.yrel);
+            // this->handleMouseMove(e.motion.xrel, e.motion.yrel);
             int x = 0;
             int y = 0;
-            int button_state = SDL_BUTTON(SDL_GetMouseState(&x, &y));
+            unsigned int button_state = SDL_GetMouseState(&x, &y);
             if (button_state) {
                 memcpy(&last_buttons, &button_state, sizeof(int));
                 hud->handleMouseDrag(x, y, last_buttons);
             }
-            break;            
+            break;
         }
         case SDL_MOUSEBUTTONDOWN:
         case SDL_MOUSEBUTTONUP: {
-            //this->toggleMouseMode();
+            // this->toggleMouseMode();
             int x = 0;
             int y = 0;
-            int button_state = SDL_BUTTON(SDL_GetMouseState(&x, &y));
+            unsigned int button_state = SDL_GetMouseState(&x, &y);
             if (e.type == SDL_MOUSEBUTTONDOWN) {
                 memcpy(&last_buttons, &button_state, sizeof(int));
                 hud->handleMouseDown(x, y, last_buttons);
@@ -221,7 +221,7 @@ void Visualiser::render() {
     }
     //  render
     BackBuffer::useStatic();
-    
+
     GL_CALL(glViewport(0, 0, windowDims.x, windowDims.y));
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     this->hud->render();
@@ -356,9 +356,9 @@ void Visualiser::close() {
     SDL_Quit();
 }
 void Visualiser::handleMouseMove(int x, int y) {
-    //if (SDL_GetRelativeMouseMode()) {
-    //    this->camera->turn(x * MOUSE_SPEED, y * MOUSE_SPEED);
-    //}
+    // if (SDL_GetRelativeMouseMode()) {
+    //     this->camera->turn(x * MOUSE_SPEED, y * MOUSE_SPEED);
+    // }
 }
 void Visualiser::handleKeypress(SDL_Keycode keycode, int /*x*/, int /*y*/) {
     // Pass key events to the scene and skip handling if false is returned

@@ -130,6 +130,7 @@ class HUD {
     void handleMouseDown(const int &x, const int &y, const MouseButtonState& buttons);
     void handleMouseUp(const int &x, const int &y, const MouseButtonState& buttons);
     void handleMouseDrag(const int &x, const int &y, const MouseButtonState& buttons);
+
  private:
     const glm::mat4 modelViewMat;
     glm::mat4 projectionMat;

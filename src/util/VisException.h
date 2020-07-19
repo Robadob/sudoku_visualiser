@@ -89,7 +89,12 @@ DERIVED_VisException(FontLoadingError, "Error during font loading!");
  * Defines a type of object to be thrown as exception.
  * It reports errors that are due to bad data being passed to Draw class
  */
-DERIVED_VisException(SketchError, "Error during font loading!");
+DERIVED_VisException(SketchError, "Error during sketch!");
+/**
+ * Defines a type of object to be thrown as exception.
+ * It reports errors that are due to out of bounds accesses
+ */
+DERIVED_VisException(OutOfBounds, "Access out of bounds!");
 
 /**
  * Lazy replacement for assert()

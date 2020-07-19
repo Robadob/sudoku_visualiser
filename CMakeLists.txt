@@ -343,7 +343,7 @@ if(WIN32)
     set(SDL2_DIR ${CMAKE_CURRENT_BINARY_DIR}/sdl2)
     mark_as_advanced(FORCE SDL2_DIR)
     find_package(SDL2 REQUIRED)   
-    add_custom_command(TARGET "${PROJECT_NAME}" POST_BUILD        # Adds a post-build event to MyTest
+    add_custom_command(TARGET "${PROJECT_NAME}" POST_BUILD        # Adds a post-build event to project
         COMMAND ${CMAKE_COMMAND} -E copy_if_different             # which executes "cmake - E copy_if_different..."
             "${SDL2_RUNTIME_LIBRARIES}"                           # <--this is in-file
             $<TARGET_FILE_DIR:${PROJECT_NAME}>)                   # <--this is out-file path
@@ -351,7 +351,7 @@ if(WIN32)
     set(GLEW_DIR ${CMAKE_CURRENT_BINARY_DIR}/glew)
     mark_as_advanced(FORCE GLEW_DIR)
     find_package(GLEW REQUIRED)   
-    add_custom_command(TARGET "${PROJECT_NAME}" POST_BUILD        # Adds a post-build event to MyTest
+    add_custom_command(TARGET "${PROJECT_NAME}" POST_BUILD        # Adds a post-build event to project
         COMMAND ${CMAKE_COMMAND} -E copy_if_different             # which executes "cmake - E copy_if_different..."
             "${GLEW_RUNTIME_LIBRARIES}"                           # <--this is in-file
             $<TARGET_FILE_DIR:${PROJECT_NAME}>)                   # <--this is out-file path
@@ -382,7 +382,6 @@ SET(RESOURCES_ALL
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/teapot.obj
 )
 cmrc_add_resource_library(resources ${RESOURCES_ALL})
-message(STATUS "${PROJECT_NAME}")
 target_link_libraries("${PROJECT_NAME}" resources)
 
 # Setup Visual Studio (and eclipse) filters

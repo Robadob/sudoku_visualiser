@@ -31,9 +31,8 @@
  * This is the main class of the visualisation, hosting the window and render loop
  */
 class Visualiser : public ViewportExt {
-    
  public:
-    explicit Visualiser();
+    Visualiser();
     ~Visualiser();
     /**
      * Starts the render loop running

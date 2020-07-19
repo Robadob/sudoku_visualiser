@@ -62,7 +62,7 @@ class Overlay {
     /**
      * If this item was last clicked on HUD, then a different item was clicked.
      */
-    virtual void loseFocus() { };
+    virtual void loseFocus() { }
 
  protected:
     /**
