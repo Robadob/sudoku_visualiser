@@ -31,6 +31,15 @@ class Board {
          */
         Cell();
         /**
+         * Comparison operator
+         * Comparses the value member
+         * If value == 0, or cell is not enabled, it cannot be a match
+         */
+        bool operator==(const int &other);
+        bool operator==(const Cell &other);
+        bool operator!=(const int &other);
+        bool operator!=(const Cell &other);
+        /**
          * Sets the value of the cell
          * If 0 is passed, the cell is reset
          */

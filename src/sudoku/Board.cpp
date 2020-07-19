@@ -78,6 +78,18 @@ Board::Cell::Cell()
     , flags({})
     , marks({}) { }
 
+bool Board::Cell::operator==(const int &other) {
+    return this->value == other && this->flags.enabled && this->value != 0;
+}
+bool Board::Cell::operator==(const Cell &other) {
+    return this->value == other.value && this->flags.enabled && other.flags.enabled && this->value != 0;
+}
+bool Board::Cell::operator!=(const int &other) {
+    return !(*this == other);
+}
+bool Board::Cell::operator!=(const Cell &other) {
+    return  !(*this == other);
+}
 Board::Cell &Board::Cell::operator=(const int &i) {
     if (i < 0 || i > 9) {
         THROW OutOfBounds("Value of %d is out of bounds, valid indexes are in the range [0-9].\n", i);
