@@ -48,8 +48,17 @@ void main()
     //float tex = textureLod(_texture, vec2(texCoords.x,-texCoords.y),0.0f).r;
     //Grab a solid pixel, ensure no interpolation
     ivec2 texDim = textureSize(_texture, 0);
-    float tex = texelFetch(_texture, ivec2(int(texCoords.x*texDim.x),texDim.y-int(texCoords.y*texDim.y)),0).r;
-    fragColor.rgb *= (1-tex);
+    vec2 tex = texelFetch(_texture, ivec2(int(texCoords.x*texDim.x),texDim.y-int(texCoords.y*texDim.y)),0).rg;
+    float intensity = tex.r;
+    float red = tex.g;
+    if (red > 0) {
+      // Manual alpha blend
+      // (foregroundRed * foregroundAlpha) + (backgroundRed * (1.0 - foregroundAlpha))
+      fragColor.r = red * intensity + (fragColor.r * (1-intensity));
+      fragColor.gb = vec2(0 * (1-intensity) + (fragColor.gb * (1-intensity)));
+    } else {
+      fragColor.rgb *= 1 - intensity;
+    }
+    fragColor.a = 1;
   }
 }
-// || (lb.y && ub.y) (lb.x && ub.x )

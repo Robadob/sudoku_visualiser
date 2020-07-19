@@ -38,6 +38,13 @@ void Board::handleNumberPress(const int &number, bool shift, bool ctrl, bool alt
             c.flags.enabled = false;
             // Toggle the user's mark
             c.marks[number].enabled = !c.marks[number].enabled;
+        } else if (ctrl) {
+            // Ensure main value is disabled (don't set 0, that nukes marks)
+            c.flags.enabled = false;
+            // Set the mark enabled
+            c.marks[number].enabled = true;
+            // Flag the mark to be painted red
+            c.marks[number].wrong = !c.marks[number].wrong;
         } else {
             // Change value to number
             // This resets if the number is 0
@@ -79,6 +86,7 @@ Board::Cell &Board::Cell::operator=(const int &i) {
     // Kill all marks
     for (int f = 1; f <= 9; ++f) {
         marks[f].enabled = false;
+        marks[f].wrong = false;
     }
     return *this;
 }

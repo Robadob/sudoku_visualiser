@@ -201,7 +201,7 @@ void BoardOverlay::redrawCell(const int &x, const int &y) {
             const FT_BitmapGlyph bit = reinterpret_cast<FT_BitmapGlyph>(g.image);
             const int penX = cell_begin.x + cell_width_height/2 - (g.bbox.xMax - g.bbox.xMin)/2;
             const int penY = cell_begin.y + cell_width_height/2 - (g.bbox.yMax - g.bbox.yMin)/2;
-            tex->paintGlyph(bit->bitmap, penX, penY);
+            tex->paintGlyph(bit->bitmap, penX, penY, c.flags.wrong);
         }
     } else {
         for (int i = 1; i <= 9; ++i) {
@@ -213,7 +213,7 @@ void BoardOverlay::redrawCell(const int &x, const int &y) {
                     const glm::ivec2 mark_begin = cell_begin + glm::ivec2(4) + glm::ivec2((i-1) %3, (i-1)/3) * static_cast<int>((cell_width_height-8)/3);
                     const int penX = mark_begin.x + cell_width_height/6 - (g.bbox.xMax - g.bbox.xMin)/2;
                     const int penY = mark_begin.y + cell_width_height/6 - (g.bbox.yMax - g.bbox.yMin)/2;
-                    tex->paintGlyph(bit->bitmap, penX, penY);
+                    tex->paintGlyph(bit->bitmap, penX, penY, c.marks[i].wrong);
                 }
             }
         }
@@ -225,7 +225,7 @@ void BoardOverlay::redrawCell(const int &x, const int &y) {
  * BoardTex methods
  */
 BoardOverlay::BoardTex::BoardTex(const BoardOverlay *_parent)
-    : Texture2D(glm::uvec2( 1, 1 ), { GL_RED, GL_RED, sizeof(unsigned char), GL_UNSIGNED_BYTE }, nullptr, Texture::DISABLE_MIPMAP | Texture::WRAP_REPEAT)
+    : Texture2D(glm::uvec2( 1, 1 ), { GL_RG, GL_RG, sizeof(unsigned char), GL_UNSIGNED_BYTE }, nullptr, Texture::DISABLE_MIPMAP | Texture::WRAP_REPEAT)
     , texture(nullptr)
     , dimensions(1, 1)
     , parent(_parent) {
@@ -235,10 +235,10 @@ void BoardOverlay::BoardTex::resize(const glm::uvec2 &_dimensions) {
     if (texture)
         free(texture);
     texture = reinterpret_cast<unsigned char**>(malloc(sizeof(char*) * this->dimensions.y));
-    texture[0] = reinterpret_cast<unsigned char*>(malloc(sizeof(char) * this->dimensions.x * this->dimensions.y));
-    memset(texture[0], 0, sizeof(char)*this->dimensions.x*this->dimensions.y);
+    texture[0] = reinterpret_cast<unsigned char*>(malloc(sizeof(char) * this->dimensions.x * this->dimensions.y * 2));  // 2 channel
+    memset(texture[0], 0, sizeof(char)*this->dimensions.x*this->dimensions.y * 2);
     for (unsigned int i = 1; i < this->dimensions.y; i++) {
-        texture[i] = texture[i - 1] + this->dimensions.x;
+        texture[i] = texture[i - 1] + (this->dimensions.x * 2);
     }
 }
 void BoardOverlay::BoardTex::updateTex() {
@@ -252,32 +252,40 @@ BoardOverlay::BoardTex::~BoardTex() {
         free(texture);
     }
 }
-void BoardOverlay::BoardTex::paintGlyph(FT_Bitmap glyph, unsigned int penX, unsigned int penY) {
+void BoardOverlay::BoardTex::paintGlyph(FT_Bitmap glyph, unsigned int penX, unsigned int penY, bool isRed) {
     for (unsigned int y = 0; y < glyph.rows; y++) {
         // src ptr maps to the start of the current row in the glyph
         unsigned char *src_ptr = glyph.buffer + y*glyph.pitch;
         // dst ptr maps to the pens current Y pos, adjusted for the current glyph row
         // unsigned char *dst_ptr = tex[penY + (glyph->bitmap.rows - y - 1)] + penX;
-        unsigned char *dst_ptr = texture[penY + y] + penX;
+        unsigned char *dst_ptr = texture[penY + y] + (penX * 2);
         // copy entire row, skipping empty pixels (incase kerning causes char overlap)
         for (int x = 0; x < glyph.pitch; x++) {
-            dst_ptr[x] = src_ptr[x];
+            if (isRed) {
+                dst_ptr[x*2] = src_ptr[x];
+                dst_ptr[(x*2)+1] = 0xff;
+            } else {
+                dst_ptr[x*2] = src_ptr[x];
+            }
         }
         // memcpy(dst_ptr, src_ptr, sizeof(unsigned char)*glyph.pitch);
     }
 }
-void BoardOverlay::BoardTex::paintGlyphMono(FT_Bitmap glyph, unsigned int penX, unsigned int penY) {
+void BoardOverlay::BoardTex::paintGlyphMono(FT_Bitmap glyph, unsigned int penX, unsigned int penY, bool isRed) {
     for (unsigned int y = 0; y < glyph.rows; y++) {
         // src ptr maps to the start of the current row in the glyph
         unsigned char *src_ptr = glyph.buffer + y*glyph.pitch;
         // dst ptr maps to the pens current Y pos, adjusted for the current glyph row
         // unsigned char *dst_ptr = tex[penY + (glyph->bitmap.rows - y - 1)] + penX;
-        unsigned char *dst_ptr = texture[penY + y] + penX;
+        unsigned char *dst_ptr = texture[penY + y] + (penX * 2);
         // copy entire row, skipping empty pixels (incase kerning causes char overlap)
         for (int x = 0; x < glyph.pitch; x++) {
             for (int j = 0; j < 8; j++)
-                if (((src_ptr[x] >> (7 - j)) & 1) == 1)
-                    dst_ptr[x * 8 + j] = 0xff;  // src_ptr[x];
+                if (((src_ptr[x] >> (7 - j)) & 1) == 1) {
+                    dst_ptr[(x * 8 + j) *2] = 0xff;  // src_ptr[x];
+                if (isRed)
+                    dst_ptr[((x * 8 + j) *2)+1] = 0xff;
+                }
         }
         // memcpy(dst_ptr, src_ptr, sizeof(unsigned char)*glyph.pitch);
     }
@@ -291,6 +299,6 @@ void BoardOverlay::BoardTex::clearCell(const int &x, const int &y) {
         + (glm::ivec2(x-1, y-1) * static_cast<int>(parent->cell_width_height));
     const glm::ivec2 cell_end = cell_begin + glm::ivec2(parent->cell_width_height);
     for (int cell_y = cell_begin.y; cell_y < cell_end.y; ++cell_y) {
-        memset(&texture[cell_y][cell_begin.x], 0, (cell_end.x - cell_begin.x) * sizeof(unsigned char));
+        memset(&texture[cell_y][cell_begin.x * 2], 0, (cell_end.x - cell_begin.x) * sizeof(unsigned char) * 2);
     }
 }

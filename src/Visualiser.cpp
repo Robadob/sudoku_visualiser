@@ -2,6 +2,7 @@
 #include "util/cuda.h"
 #include "util/fonts.h"
 #include "util/MouseButtonState.h"
+#include "sudoku/Board.h"
 
 #include <glm/gtc/matrix_transform.hpp>
 

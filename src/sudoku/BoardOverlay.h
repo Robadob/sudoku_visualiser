@@ -35,13 +35,13 @@ class BoardOverlay : public Overlay {
          * @param penX The x coordinate that the top-left corner of the glyphs bounding-box maps to within the texture
          * @param penY The y coordinate that the top-left corner of the glyphs bounding-box maps to within the texture
          */
-        void paintGlyph(FT_Bitmap glyph, unsigned int penX, unsigned int penY);
+        void paintGlyph(FT_Bitmap glyph, unsigned int penX, unsigned int penY, bool isRed = false);
         /**
          * Paints a single character glyph to the texture at the specified location from a 1-bit mono texture
          * @param penX The x coordinate that the top-left corner of the glyphs bounding-box maps to within the texture
          * @param penY The y coordinate that the top-left corner of the glyphs bounding-box maps to within the texture
          */
-        void paintGlyphMono(FT_Bitmap glyph, unsigned int penX, unsigned int penY);
+        void paintGlyphMono(FT_Bitmap glyph, unsigned int penX, unsigned int penY, bool isRed = false);
         /**
          * Updates the GL texture to match the painted texture
          */
@@ -50,6 +50,11 @@ class BoardOverlay : public Overlay {
         void clearCell(const int &x, const int &y);
 
      private:
+        /**
+         * 2 channel texture
+         * Channel 1 intensity
+         * Channel 2 Red (Treated as a binary 0 or 255)
+         */
         unsigned char **texture;
         glm::uvec2 dimensions;
         const BoardOverlay *parent;
