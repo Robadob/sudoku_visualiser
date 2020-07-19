@@ -1,14 +1,14 @@
-#ifndef SRC_SODOKU_BOARD_H_
-#define SRC_SODOKU_BOARD_H_
+#ifndef SRC_SUDOKU_BOARD_H_
+#define SRC_SUDOKU_BOARD_H_
 
 #include <memory>
 
-#include "sodoku/BoardOverlay.h"
+#include "sudoku/BoardOverlay.h"
 
 class Board {
  public:
     /**
-     * Represents a single number that can be written into a sodoku board
+     * Represents a single number that can be written into a sudoku board
      */
     struct Cell {
         struct Flags {
@@ -65,6 +65,11 @@ class Board {
      */
     std::shared_ptr<BoardOverlay> getOverlay(const unsigned int &dims);
     /**
+     * Kill the overlay, without losing the board state
+     * This should be called before GL context is destroyed
+     */
+    void killOverlay();
+    /**
      * Sets the selected cell
      * Triggers the overlay to update
      */
@@ -94,4 +99,4 @@ class Board {
     std::shared_ptr<BoardOverlay> overlay = nullptr;
 };
 
-#endif  // SRC_SODOKU_BOARD_H_
+#endif  // SRC_SUDOKU_BOARD_H_

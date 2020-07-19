@@ -12,7 +12,7 @@
 
 
 BoardOverlay::BoardOverlay(Board &parent, const unsigned int &width_height)
-    : Overlay(std::make_shared<Shaders>(Stock::Shaders::SODOKU_BOARD))
+    : Overlay(std::make_shared<Shaders>(Stock::Shaders::SUDOKU_BOARD))
     , board(parent)
     , tex(std::make_shared<BoardTex>(this)) {
     // Preload all the glyphs we will use
@@ -41,6 +41,7 @@ BoardOverlay::BoardOverlay(Board &parent, const unsigned int &width_height)
     getShaders()->addTexture("_texture", tex);
 }
 BoardOverlay::~BoardOverlay() {
+    tex.reset();
     if (this->value_font)
         FT_Done_Face(this->value_font);
     if (this->mark_font)

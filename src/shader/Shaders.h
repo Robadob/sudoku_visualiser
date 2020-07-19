@@ -33,7 +33,7 @@ const ShaderSet SKYBOX{ "resources/skybox.vert", "skybox.frag", "" };
 const ShaderSet INSTANCED_FLAT{ "resources/instanced_flat.vert", "resources/material_flat.frag", "" };
 const ShaderSet INSTANCED_PHONG{ "resources/instanced_default.vert", "resources/material_phong.frag", "" };
 const ShaderSet TEXT{ "resources/default.vert", "resources/text.frag", "" };
-const ShaderSet SODOKU_BOARD{ "resources/default.vert", "resources/sodoku_board.frag", "" };
+const ShaderSet SUDOKU_BOARD{ "resources/default.vert", "resources/sudoku_board.frag", "" };
 const ShaderSet SPRITE2D{ "resources/default.vert", "resources/sprite2d.frag", "" };
 const ShaderSet SPRITE2D_HEAT{ "resources/default.vert", "resources/sprite2dHeat.frag", "" };
 const ShaderSet BILLBOARD{ "resources/billboard.vert", "resources/particle.frag", "" };

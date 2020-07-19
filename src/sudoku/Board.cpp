@@ -17,6 +17,9 @@ std::shared_ptr<BoardOverlay> Board::getOverlay(const unsigned int &dims) {
         overlay = std::make_shared<BoardOverlay>(*this, dims);
     return overlay;
 }
+void Board::killOverlay() {
+    overlay = nullptr;
+}
 void Board::setSelectedCell(const int &x, const int &y) {
     selected_cell = glm::ivec2(x, y);
     overlay->selectCell(x, y);

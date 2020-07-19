@@ -24,10 +24,10 @@ Visualiser::Visualiser()
     , isInitialised(false)
     , continueRender(false)
     , msaaState(true)
-    , windowTitle("Sodoku Visualiser")
+    , windowTitle("Sudoku Visualiser")
     , windowDims(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
     , fpsDisplay(nullptr)
-    , sodoku_board(std::make_shared<Board>()) {
+    , sudoku_board(std::make_shared<Board>()) {
     this->isInitialised = this->init();
     BackBuffer::setClear(true, glm::vec3(0.8f));
     if (true) {
@@ -35,7 +35,7 @@ Visualiser::Visualiser()
         fpsDisplay->setUseAA(false);
         hud->add(fpsDisplay, HUD::AnchorV::South, HUD::AnchorH::East, glm::ivec2(0), INT_MAX);
     }
-    hud->add(sodoku_board->getOverlay(DEFAULT_WINDOW_HEIGHT), HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), INT_MAX);
+    hud->add(sudoku_board->getOverlay(DEFAULT_WINDOW_HEIGHT), HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), INT_MAX);
 }
 Visualiser::~Visualiser() {
     this->close();
@@ -326,7 +326,7 @@ void Visualiser::resizeWindow() {
     resizeBackBuffer(this->windowDims);
 }
 void Visualiser::deallocateGLObjects() {
-    sodoku_board.reset();
+    sudoku_board->killOverlay();
     fpsDisplay.reset();
     this->hud->clear();
 }
@@ -391,17 +391,17 @@ void Visualiser::handleKeypress(SDL_Keycode keycode, const Uint8 *keyboard_state
         }
         break;
     }
-    // Sodoku Number
+    // Sudoku Number
     case SDLK_BACKSPACE:
     case SDLK_0: case SDLK_1: case SDLK_2: case SDLK_3:case SDLK_4:
     case SDLK_5: case SDLK_6: case SDLK_7: case SDLK_8:case SDLK_9: {
-        if (this->sodoku_board) {
+        if (this->sudoku_board) {
             bool shift_state = keyboard_state[SDL_SCANCODE_LSHIFT] || keyboard_state[SDL_SCANCODE_RSHIFT];
             bool ctrl_state = keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL];
             bool alt_state = keyboard_state[SDL_SCANCODE_LALT] || keyboard_state[SDL_SCANCODE_RALT];
             // Convert keycode to number [0-9] (0, acts as clear)
             keycode = keycode == SDLK_BACKSPACE ? 0 : keycode- SDLK_0;
-            sodoku_board->handleNumberPress(keycode, shift_state, ctrl_state, alt_state);
+            sudoku_board->handleNumberPress(keycode, shift_state, ctrl_state, alt_state);
         }
         break;
     }

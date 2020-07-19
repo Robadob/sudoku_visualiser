@@ -25,7 +25,7 @@
 #include "Draw.h"
 #include "Entity.h"
 
-#include "sodoku/Board.h"
+#include "sudoku/Board.h"
 
 /**
  * This is the main class of the visualisation, hosting the window and render loop
@@ -138,7 +138,7 @@ class Visualiser : public ViewportExt {
     const char * getWindowTitle() const override;
     void setWindowTitle(const char *windowTitle) override;
 
-    std::shared_ptr<Board> getBoard() { return sodoku_board; }
+    std::shared_ptr<Board> getBoard() { return sudoku_board; }
 
  private:
     SDL_Window* window;
@@ -200,7 +200,7 @@ class Visualiser : public ViewportExt {
      */
     std::lock_guard<std::mutex> *pause_guard = nullptr;
 
-    std::shared_ptr<Board> sodoku_board;
+    std::shared_ptr<Board> sudoku_board;
 };
 
 #endif  // SRC_VISUALISER_H_

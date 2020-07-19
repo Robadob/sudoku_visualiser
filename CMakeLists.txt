@@ -112,7 +112,7 @@ MACRO (download_freetype)
     endif()
 ENDMACRO()
 
-project(sodoku_visualiser CXX)
+project(sudoku_visualiser CXX)
 
 include(FindOpenGL)
 if (NOT TARGET OpenGL::GL)
@@ -196,11 +196,11 @@ SET(VISUALISER_INCLUDE
 )
 # Prepare list of source files
 SET(VISUALISER_SRC
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/Board.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/Board.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/BoardOverlay.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/BoardOverlay.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/main.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/Board.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/Board.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/BoardOverlay.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/BoardOverlay.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Visualiser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util/VisException.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util/Resources.h
@@ -370,7 +370,7 @@ endif ()
 # NOTE: The build step for resources embeds them as base64, this should not be used for large files.
 include(cmake/CMakeRC/CMakeRC.cmake)
 SET(RESOURCES_ALL
-    ${CMAKE_CURRENT_SOURCE_DIR}/resources/sodoku_board.frag
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/sudoku_board.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/instanced_default.vert
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/material_flat.frag
     ${CMAKE_CURRENT_SOURCE_DIR}/resources/material_phong.frag

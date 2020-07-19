@@ -1,5 +1,5 @@
-#ifndef SRC_SODOKU_BOARDOVERLAY_H_
-#define SRC_SODOKU_BOARDOVERLAY_H_
+#ifndef SRC_SUDOKU_BOARDOVERLAY_H_
+#define SRC_SUDOKU_BOARDOVERLAY_H_
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -110,4 +110,4 @@ class BoardOverlay : public Overlay {
 };
 
 
-#endif  // SRC_SODOKU_BOARDOVERLAY_H_
+#endif  // SRC_SUDOKU_BOARDOVERLAY_H_
