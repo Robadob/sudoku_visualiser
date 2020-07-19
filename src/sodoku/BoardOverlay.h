@@ -10,6 +10,8 @@
 
 #include "Overlay.h"
 
+class Board;
+
 class BoardOverlay : public Overlay {
     friend class BoardTex;
     class BoardTex : public Texture2D {
@@ -61,7 +63,7 @@ class BoardOverlay : public Overlay {
     };
 
  public:
-    explicit BoardOverlay(const unsigned int &width_height = 720);
+    explicit BoardOverlay(Board &parent, const unsigned int &width_height = 720);
     ~BoardOverlay();
     void reload() override;
 
@@ -84,6 +86,7 @@ class BoardOverlay : public Overlay {
 
  private:
     void scaleBoard(const unsigned int &width_height);
+    Board &board;
     const glm::vec4 color = glm::vec4(1.0f);
     const glm::vec4 background_color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
     const glm::vec4 selected_color = glm::vec4(255/255.0f, 251/255.0f, 145/255.0f, 1.0f);
@@ -93,7 +96,6 @@ class BoardOverlay : public Overlay {
     unsigned int thin_line_width = 2;
 
     unsigned int board_width_height;
-    glm::ivec2 selected_cell;
 
     // These variables are internal cache of maths for calculating grid coords
     unsigned int line_width;

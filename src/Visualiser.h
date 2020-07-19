@@ -25,7 +25,7 @@
 #include "Draw.h"
 #include "Entity.h"
 
-#include "sodoku/BoardOverlay.h"
+#include "sodoku/Board.h"
 
 /**
  * This is the main class of the visualisation, hosting the window and render loop
@@ -83,7 +83,7 @@ class Visualiser : public ViewportExt {
      * @param y The vertical mouse position at the time of the KEY_DOWN event
      * @note Unsure whether the mouse position is relative to the window
      */
-    void handleKeypress(SDL_Keycode keycode, int x, int y);
+    void handleKeypress(SDL_Keycode keycode, const Uint8 *keyboard_state, int x, int y);
     /**
      * Moves the camera according to the motion of the mouse (whilst the mouse is attatched to the window via toggleMouseMode())
      * @param x The horizontal distance moved
@@ -137,6 +137,8 @@ class Visualiser : public ViewportExt {
     std::weak_ptr<HUD> getHUD() override;
     const char * getWindowTitle() const override;
     void setWindowTitle(const char *windowTitle) override;
+
+    std::shared_ptr<Board> getBoard() { return sodoku_board; }
 
  private:
     SDL_Window* window;
@@ -198,7 +200,7 @@ class Visualiser : public ViewportExt {
      */
     std::lock_guard<std::mutex> *pause_guard = nullptr;
 
-    std::shared_ptr<BoardOverlay> sodoku_board;
+    std::shared_ptr<Board> sodoku_board;
 };
 
 #endif  // SRC_VISUALISER_H_

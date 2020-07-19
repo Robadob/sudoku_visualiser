@@ -3,51 +3,17 @@
 #include <memory>
 #include <glm/gtc/type_ptr.hpp>
 
+
+#include "Board.h"
 #include "shader/Shaders.h"
 
 #include "util/warnings.h"
 #include "util/fonts.h"
 
-struct Cell {
-    struct Flags {
-        unsigned char enabled:1;
-        unsigned char wrong:1;
-    };
-    struct Marks {
-        Flags flags[9];
-        Flags &operator[](int i) {
-            if (i<1 || i > 9) {
-                THROW OutOfBounds("Mark index [%d][%d] is out of bounds, valid indexes are in the range [1-9].\n", i);
-            }
-            return flags[i+1];
-        }
-    };
-    Cell()
-        : value(0)
-        , flags({})
-        , marks({}) { }
-    void operator=(const int &i) {
-        if (i < 0 || i > 9) {
-            THROW OutOfBounds("Value index [%d][%d] is out of bounds, valid indexes are in the range [0-9].\n", i);
-        }
-        if (i == 0) {
-            // Reset square
-            flags.enabled = false;
-            flags.wrong = false;
-        } else {
-            // Enable var
-            flags.enabled = true;
-        }
-        value = i;
-    }
-    unsigned char value:4;
-    Flags flags;
-    Marks marks;
-};
 
-BoardOverlay::BoardOverlay(const unsigned int &width_height)
+BoardOverlay::BoardOverlay(Board &parent, const unsigned int &width_height)
     : Overlay(std::make_shared<Shaders>(Stock::Shaders::SODOKU_BOARD))
-    , selected_cell(-1, -1)
+    , board(parent)
     , tex(std::make_shared<BoardTex>(this)) {
     // Preload all the glyphs we will use
     FT_Error error = FT_Init_FreeType(&library);
@@ -70,7 +36,8 @@ BoardOverlay::BoardOverlay(const unsigned int &width_height)
     getShaders()->addStaticUniform("_col", glm::value_ptr(this->color), 4);
     getShaders()->addStaticUniform("_backCol", glm::value_ptr(this->background_color), 4);
     getShaders()->addStaticUniform("_selCol", glm::value_ptr(this->selected_color), 4);
-    getShaders()->addStaticUniform("selected_cell", glm::value_ptr(this->selected_cell), 2);
+    glm::ivec2 selected_cell = board.getSelectedCell();
+    getShaders()->addStaticUniform("selected_cell", glm::value_ptr(selected_cell), 2);
     getShaders()->addTexture("_texture", tex);
 }
 BoardOverlay::~BoardOverlay() {
@@ -106,20 +73,20 @@ void BoardOverlay::handleMouseDown(const int &x, const int &y, const MouseButton
         const glm::bvec2 ub = glm::lessThan(little_cell_offset, glm::ivec2(cell_width_height));
         if ((!(lb.x && ub.x) || !(lb.y && ub.y))) {
             // We are line
-            selectCell(-1, -1);
+            board.setSelectedCell(-1, -1);
         } else {
             // We are cell
-            selectCell(cell_index.x+1, cell_index.y+1);
+            board.setSelectedCell(cell_index.x+1, cell_index.y+1);
         }
     }
 }
 void BoardOverlay::loseFocus() {
     // Set an invalid selection
-    selectCell(-1, -1);
+    board.setSelectedCell(-1, -1);
 }
 void BoardOverlay::selectCell(const int &x, const int &y) {
-    selected_cell = glm::ivec2(x-1, y-1);
-    getShaders()->addStaticUniform("selected_cell", glm::value_ptr(this->selected_cell), 2);
+    glm::ivec2 selected_cell = glm::ivec2(x-1, y-1);
+    getShaders()->addStaticUniform("selected_cell", glm::value_ptr(selected_cell), 2);
 }
 void BoardOverlay::scaleBoard(const unsigned int &width_height) {
     line_width = (4 * thick_line_width) + (6 * thin_line_width);
@@ -218,8 +185,8 @@ void BoardOverlay::redrawCell(const int &x, const int &y) {
     if (x<1 || x > 9 || y< 1 || y > 9) {
         THROW OutOfBounds("Cell coordinate [%d][%d] is out of bounds, valid cell coordinates are in the range [1-9][1-9].\n", x, y);
     }
-    // Temp cell for debug
-    Cell c;
+    // Grab cell
+    Board::Cell &c = board[x][y];
     // Clear texture
     tex->clearCell(x, y);
     // Apply glyphs to cell

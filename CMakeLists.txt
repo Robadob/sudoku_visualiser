@@ -196,6 +196,8 @@ SET(VISUALISER_INCLUDE
 )
 # Prepare list of source files
 SET(VISUALISER_SRC
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/Board.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/Board.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/BoardOverlay.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/BoardOverlay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sodoku/main.cpp

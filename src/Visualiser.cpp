@@ -27,7 +27,7 @@ Visualiser::Visualiser()
     , windowTitle("Sodoku Visualiser")
     , windowDims(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
     , fpsDisplay(nullptr)
-    , sodoku_board(nullptr) {
+    , sodoku_board(std::make_shared<Board>()) {
     this->isInitialised = this->init();
     BackBuffer::setClear(true, glm::vec3(0.8f));
     if (true) {
@@ -35,8 +35,7 @@ Visualiser::Visualiser()
         fpsDisplay->setUseAA(false);
         hud->add(fpsDisplay, HUD::AnchorV::South, HUD::AnchorH::East, glm::ivec2(0), INT_MAX);
     }
-    sodoku_board = std::make_shared<BoardOverlay>();
-    hud->add(sodoku_board, HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), INT_MAX);
+    hud->add(sodoku_board->getOverlay(DEFAULT_WINDOW_HEIGHT), HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), INT_MAX);
 }
 Visualiser::~Visualiser() {
     this->close();
@@ -186,7 +185,7 @@ void Visualiser::render() {
             int x = 0;
             int y = 0;
             SDL_GetMouseState(&x, &y);
-            this->handleKeypress(e.key.keysym.sym, x, y);
+            this->handleKeypress(e.key.keysym.sym, state, x, y);
         }
         break;
         // case SDL_MOUSEWHEEL:
@@ -360,7 +359,7 @@ void Visualiser::handleMouseMove(int x, int y) {
     //     this->camera->turn(x * MOUSE_SPEED, y * MOUSE_SPEED);
     // }
 }
-void Visualiser::handleKeypress(SDL_Keycode keycode, int /*x*/, int /*y*/) {
+void Visualiser::handleKeypress(SDL_Keycode keycode, const Uint8 *keyboard_state, int /*x*/, int /*y*/) {
     // Pass key events to the scene and skip handling if false is returned
     // if (scene && !scene->_keypress(keycode, x, y))
     //     return;
@@ -383,7 +382,7 @@ void Visualiser::handleKeypress(SDL_Keycode keycode, int /*x*/, int /*y*/) {
         //     this->scene->_reload();
         this->hud->reload();
         break;
-    case SDLK_p:
+    case SDLK_p: {
         if (this->pause_guard) {
             delete pause_guard;
             pause_guard = nullptr;
@@ -391,6 +390,21 @@ void Visualiser::handleKeypress(SDL_Keycode keycode, int /*x*/, int /*y*/) {
             pause_guard = new std::lock_guard<std::mutex>(render_buffer_mutex);
         }
         break;
+    }
+    // Sodoku Number
+    case SDLK_BACKSPACE:
+    case SDLK_0: case SDLK_1: case SDLK_2: case SDLK_3:case SDLK_4:
+    case SDLK_5: case SDLK_6: case SDLK_7: case SDLK_8:case SDLK_9: {
+        if (this->sodoku_board) {
+            bool shift_state = keyboard_state[SDL_SCANCODE_LSHIFT] || keyboard_state[SDL_SCANCODE_RSHIFT];
+            bool ctrl_state = keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL];
+            bool alt_state = keyboard_state[SDL_SCANCODE_LALT] || keyboard_state[SDL_SCANCODE_RALT];
+            // Convert keycode to number [0-9] (0, acts as clear)
+            keycode = keycode == SDLK_BACKSPACE ? 0 : keycode- SDLK_0;
+            sodoku_board->handleNumberPress(keycode, shift_state, ctrl_state, alt_state);
+        }
+        break;
+    }
     default:
         //  Do nothing?
         break;
