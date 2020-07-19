@@ -2,16 +2,28 @@
 #define SRC_SUDOKU_BOARD_H_
 
 #include <memory>
+#include <string>
 
 #include "sudoku/BoardOverlay.h"
 
+/**
+ * Which collection of validation rules to apply
+ * @note In future this could be converted to a bitmask for individual rules
+ */
+enum Mode : unsigned char {
+    None = 0,
+    Vanilla,
+    End  // End is not a valid mode, it acts as the end point, so we can iterate the enum
+};
+inline std::string to_string(const Mode&m) {
+    switch (m) {
+        case None: return "No Constraints";
+        case Vanilla: return "Vanilla Constraints";
+        default: return "Invalid";
+    }
+}
 class Board {
  public:
-    /**
-     * Which collection of validation rules to apply
-     * @note In future this could be converted to a bitmask for individual rules
-     */
-    enum Mode{ None, Vanilla };
     /**
      * Represents a single number that can be written into a sudoku board
      */
@@ -113,6 +125,8 @@ class Board {
      * Clears the wrong flag in all cells
      */
     void clearWrong();
+    Mode getMode() const  { return current_mode; }
+    void setMode(const Mode &mode);
 
  private:
     Mode current_mode = Vanilla;

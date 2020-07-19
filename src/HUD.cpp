@@ -89,12 +89,14 @@ void HUD::handleMouseDown(const int &x, const int &y, const MouseButtonState& bu
     std::shared_ptr<Item> intersected_item;
     int max_z_index = -INT_MAX;
     for (auto &i : stack) {
-        const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(i->data)[1].x, static_cast<glm::vec3*>(i->data)[1].y);
-        if (x >= bottomLeft.x && x < bottomLeft.x + static_cast<int>(i->overlay->getWidth()) &&
-            y >= bottomLeft.y && y < bottomLeft.y + static_cast<int>(i->overlay->getHeight())) {
-            if (i->zIndex > max_z_index) {
-                intersected_item = i;
-                max_z_index = i->zIndex;
+        if (i->overlay->getClickable()) {
+            const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(i->data)[1].x, static_cast<glm::vec3*>(i->data)[1].y);
+            if (x >= bottomLeft.x && x < bottomLeft.x + static_cast<int>(i->overlay->getWidth()) &&
+                y >= bottomLeft.y && y < bottomLeft.y + static_cast<int>(i->overlay->getHeight())) {
+                if (i->zIndex > max_z_index) {
+                    intersected_item = i;
+                    max_z_index = i->zIndex;
+                }
             }
         }
     }
@@ -104,7 +106,7 @@ void HUD::handleMouseDown(const int &x, const int &y, const MouseButtonState& bu
     }
     const auto fi = focused_item.lock();
     if (fi && intersected_item != fi) {
-            fi->overlay->loseFocus();
+        fi->overlay->loseFocus();
         focused_item = intersected_item;
     }
 }

@@ -63,6 +63,15 @@ class Overlay {
      * If this item was last clicked on HUD, then a different item was clicked.
      */
     virtual void loseFocus() { }
+    /**
+     * Returns whether this UI element is clickable
+     * Element must be visible to be clickable
+     */
+    bool getClickable() const { return can_click && visible; }
+    /**
+     * Returns whether this UI element is clickable
+     */
+    void setClickable(const bool &b) { can_click = b; }
 
  protected:
     /**
@@ -92,6 +101,7 @@ class Overlay {
     std::weak_ptr<HUD::Item> hudItem;
 
  private:
+    bool can_click;
     bool visible;
     /**
      * Sets the HUD::item attatched to the overlay, so that resize events can be triggered

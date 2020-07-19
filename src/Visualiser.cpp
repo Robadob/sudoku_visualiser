@@ -5,6 +5,7 @@
 #include "sudoku/Board.h"
 
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtx/easing.hpp>
 
 
 #define FOVY 60.0f
@@ -31,12 +32,20 @@ Visualiser::Visualiser()
     , sudoku_board(std::make_shared<Board>()) {
     this->isInitialised = this->init();
     BackBuffer::setClear(true, glm::vec3(0.8f));
-    if (true) {
+    {
         fpsDisplay = std::make_shared<Text>("", 10, glm::vec3(0), fonts::findFont({"Arial"}, fonts::GenericFontFamily::SANS).c_str());
         fpsDisplay->setUseAA(false);
         hud->add(fpsDisplay, HUD::AnchorV::South, HUD::AnchorH::East, glm::ivec2(0), INT_MAX);
     }
-    hud->add(sudoku_board->getOverlay(DEFAULT_WINDOW_HEIGHT), HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), INT_MAX);
+    {
+        notificationDisplay = std::make_shared<Text>("", 50, glm::vec3(0), fonts::findFont({"Comic Sans MS"}, fonts::GenericFontFamily::SANS).c_str());
+        notificationDisplay->setVisible(false);
+        notificationDisplay->setColor(glm::vec3(0));
+        notificationDisplay->setBackgroundColor(glm::vec4(0.8f));
+        notificationDisplay->setUseAA(true);
+        hud->add(notificationDisplay, HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), INT_MAX);
+    }
+    hud->add(sudoku_board->getOverlay(DEFAULT_WINDOW_HEIGHT), HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), 0);
 }
 Visualiser::~Visualiser() {
     this->close();
@@ -102,6 +111,8 @@ void Visualiser::run() {
         if (!this->window) {
             printf("Window failed to init.\n");
         } else {
+            // Update window title to whatever default mode is
+            setWindowTitleMode();
             int err = SDL_GL_MakeCurrent(this->window, this->context);
             if (err != 0) {
                 THROW VisAssert("Visualiser::run(): SDL_GL_MakeCurrent failed!\n", SDL_GetError());
@@ -114,6 +125,24 @@ void Visualiser::run() {
             while (this->continueRender) {
                 //  Update the fps in the window title
                 this->updateFPS();
+                // Process notification removal
+                {
+                    if (notification_timout) {
+                        const unsigned int diff = glm::clamp<unsigned int>(notification_timout - currentTime, 0, notification_millis);
+                        const float modifier = glm::cubicEaseOut(diff/static_cast<float>(notification_millis));
+                        glm::vec4 fg = notificationDisplay->getColor();
+                        glm::vec4 bg = notificationDisplay->getBackgroundColor();
+                        fg.a = 1.0f * modifier;
+                        bg.a = 0.8f * modifier;
+                        notificationDisplay->setColor(fg);
+                        notificationDisplay->setBackgroundColor(bg);
+                        if (notification_timout < currentTime) {
+                            // Due to use of uint to calculate diff, colors are reset to max alpha on exit
+                            notification_timout = 0;
+                            notificationDisplay->setVisible(false);
+                        }
+                    }
+                }
                 if (this->sudoku_board->hasOverlay())
                     this->sudoku_board->getOverlay()->update();
                 this->render();
@@ -240,7 +269,7 @@ bool Visualiser::isRunning() const {
 //  Items taken from sdl_exp
 bool Visualiser::init() {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        fprintf(stderr, "Unable to initialize SDL: %s", SDL_GetError());
+        fprintf(stderr, "Unable to initialise SDL: %s", SDL_GetError());
         return false;
     }
 
@@ -385,6 +414,17 @@ void Visualiser::handleKeypress(SDL_Keycode keycode, const Uint8 *keyboard_state
         //     this->scene->_reload();
         this->hud->reload();
         break;
+    case SDLK_m: {
+        int m = this->sudoku_board->getMode() + 1;
+        m = m == End ? 0 : m;
+        this->sudoku_board->setMode(Mode(m));
+        // Notify user of the change
+        sendNotification(to_string(Mode(m)));
+        // Update window title
+        std::string newTitle = "Sudoku Visualiser - ";
+        newTitle += to_string(Mode(m));
+        setWindowTitleMode();
+    }
     case SDLK_p: {
         if (this->pause_guard) {
             delete pause_guard;
@@ -495,4 +535,16 @@ const char *Visualiser::getWindowTitle() const {
 void Visualiser::setWindowTitle(const char *_windowTitle) {
     SDL_SetWindowTitle(window, _windowTitle);
     windowTitle = _windowTitle;
+}
+void Visualiser::setWindowTitleMode() {
+    // Update window title
+    std::string newTitle = "Sudoku Visualiser - ";
+    newTitle += to_string(Mode(this->sudoku_board->getMode()));
+    setWindowTitle(newTitle.c_str());
+}
+void Visualiser::sendNotification(const std::string &notification, unsigned int timeout) {
+    notificationDisplay->setString(notification.c_str());
+    notificationDisplay->setVisible(true);
+    notification_timout = currentTime + timeout;
+    notification_millis = timeout;
 }

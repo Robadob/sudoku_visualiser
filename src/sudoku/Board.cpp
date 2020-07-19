@@ -27,15 +27,21 @@ bool Board::hasOverlay() const {
 }
 void Board::setSelectedCell(const int &x, const int &y) {
     selected_cell = glm::ivec2(x, y);
-    overlay->selectCell(x, y);
+    if (overlay)
+        overlay->selectCell(x, y);
 }
 void Board::shiftSelectedCell(const int &x, const int &y) {
     selected_cell += glm::ivec2(x, y);
     selected_cell = glm::clamp(selected_cell, glm::ivec2(1), glm::ivec2(9));
-    overlay->selectCell(selected_cell.x, selected_cell.y);
+    if (overlay)
+        overlay->selectCell(selected_cell.x, selected_cell.y);
 }
 const glm::ivec2 &Board::getSelectedCell() {
     return selected_cell;
+}
+void Board::setMode(const Mode &mode) {
+    current_mode = mode;
+    validate();
 }
 
 void Board::handleNumberPress(const int &number, bool shift, bool ctrl, bool alt) {
@@ -74,7 +80,8 @@ bool Board::validate() {
     } else {
         THROW ValidationError("Unexpected Mode\n");
     }
-    overlay->queueRedrawAllCells();
+    if (overlay)
+        overlay->queueRedrawAllCells();
     return result;
 }
 void Board::clearWrong() {

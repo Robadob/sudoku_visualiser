@@ -53,7 +53,7 @@ Text::Text(const char *_string, unsigned int fontHeight, glm::vec4 color, char c
             &this->font);
     }
     if (error) {
-        fprintf(stderr, "An unexpected error occured whilst loading font file %s: %i, defaulting to Arial\n", fontFile, error);
+        fprintf(stderr, "An unexpected error occurred whilst loading font file %s: %i, defaulting to Arial\n", fontFile, error);
         fontFile = fonts::findFont({"Arial"}, fonts::GenericFontFamily::SANS).c_str();
         error = FT_New_Face(library,
             fontFile,
@@ -65,7 +65,7 @@ Text::Text(const char *_string, unsigned int fontHeight, glm::vec4 color, char c
         0,      /* pixel_width           */
         this->fontHeight);/* pixel_height          */
     if (error) {
-        fprintf(stderr, "An unexpected error occured whilst setting font size: %i\n", error);
+        fprintf(stderr, "An unexpected error occurred whilst setting font size: %i\n", error);
         return;
     }
     printf("Font %s was loaded successfully.\n", fontFile);

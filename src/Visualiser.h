@@ -136,11 +136,19 @@ class Visualiser : public ViewportExt {
     std::shared_ptr<const Camera> getCamera() const override;
     std::weak_ptr<HUD> getHUD() override;
     const char * getWindowTitle() const override;
+    /**
+     * This would be so much nicer with varargs in printf style
+     */
     void setWindowTitle(const char *windowTitle) override;
 
     std::shared_ptr<Board> getBoard() { return sudoku_board; }
+    /**
+     * Create a notification popup in the center of the screen
+     */
+    void sendNotification(const std::string &notification, unsigned int timeout = 2000);
 
  private:
+    void setWindowTitleMode();
     SDL_Window* window;
     SDL_Rect windowedBounds;
     SDL_GLContext context;
@@ -186,6 +194,15 @@ class Visualiser : public ViewportExt {
      * The object which renders FPS text to the visualisation
      */
     std::shared_ptr<Text> fpsDisplay;
+    /**
+     * Used to display a notification
+     */
+    unsigned int notification_timout = 0;
+    /**
+     * Notification duration
+     */
+    unsigned int notification_millis = 2000;
+    std::shared_ptr<Text> notificationDisplay;
     /**
      * Background thread in which visualiser executes
      * (Timestep independent visualiser)

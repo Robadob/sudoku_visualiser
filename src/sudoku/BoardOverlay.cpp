@@ -16,6 +16,7 @@ BoardOverlay::BoardOverlay(Board &parent, const unsigned int &width_height)
     : Overlay(std::make_shared<Shaders>(Stock::Shaders::SUDOKU_BOARD))
     , board(parent)
     , tex(std::make_shared<BoardTex>(this)) {
+    setClickable(true);
     // Preload all the glyphs we will use
     FT_Error error = FT_Init_FreeType(&library);
     if (error) {
