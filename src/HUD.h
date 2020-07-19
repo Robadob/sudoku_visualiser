@@ -137,7 +137,7 @@ class HUD {
     // Holds the overlay elements to be rendered in reverse z-index order
     std::list<std::shared_ptr<Item>> stack;
     glm::uvec2 dims;
-    std::shared_ptr<Item> focused_item;
+    std::weak_ptr<Item> focused_item;
 };
 
 #endif  // SRC_HUD_H_

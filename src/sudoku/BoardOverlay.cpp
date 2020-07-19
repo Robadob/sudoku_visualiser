@@ -1,6 +1,7 @@
 #include "BoardOverlay.h"
 
 #include <memory>
+#include <string>
 #include <glm/gtc/type_ptr.hpp>
 
 
@@ -173,52 +174,68 @@ void BoardOverlay::scaleBoard(const unsigned int &width_height) {
         }
     }
 
-    redrawAllCells();
+    queueRedrawAllCells();
 }
 
-void BoardOverlay::redrawAllCells() {
-    for (int i = 1; i <= 9; ++i)
-        for (int j = 1; j <= 9; ++j)
-            redrawCell(i, j);
-    tex->updateTex();
-}
-void BoardOverlay::redrawCell(const int &x, const int &y) {
-    if (x<1 || x > 9 || y< 1 || y > 9) {
-        THROW OutOfBounds("Cell coordinate [%d][%d] is out of bounds, valid cell coordinates are in the range [1-9][1-9].\n", x, y);
-    }
-    // Grab cell
-    Board::Cell &c = board[x][y];
-    // Clear texture
-    tex->clearCell(x, y);
-    // Apply glyphs to cell
-    const glm::ivec2 cell_begin = static_cast<int>(thin_line_width) * glm::ivec2(x, y)
-        + ((glm::ivec2(x-1, y-1)/3) + glm::ivec2(1)) * glm::ivec2(thick_line_width - thin_line_width)
-        + (glm::ivec2(x-1, y-1) * static_cast<int>(cell_width_height));
-    if (c.flags.enabled && c.value) {
-        // Render value num
-        {
-            const TGlyph &g = value_glyph[c.value-1];
-            const FT_BitmapGlyph bit = reinterpret_cast<FT_BitmapGlyph>(g.image);
-            const int penX = cell_begin.x + cell_width_height/2 - (g.bbox.xMax - g.bbox.xMin)/2;
-            const int penY = cell_begin.y + cell_width_height/2 - (g.bbox.yMax - g.bbox.yMin)/2;
-            tex->paintGlyph(bit->bitmap, penX, penY, c.flags.wrong);
-        }
-    } else {
-        for (int i = 1; i <= 9; ++i) {
-            if (c.marks[i].enabled) {
-                // Render mark num
+void BoardOverlay::update() {
+    bool updateRequired = false;
+    {
+        const std::lock_guard<std::mutex> lock(redraw_queue_mutex);
+        for (auto &_c : redraw_queue) {
+            const int &x = _c.first;
+            const int &y = _c.second;
+            // Grab cell
+            Board::Cell &c = board[x][y];
+            // Clear texture
+            tex->clearCell(x, y);
+            // Apply glyphs to cell
+            const glm::ivec2 cell_begin = static_cast<int>(thin_line_width) * glm::ivec2(x, y)
+                + ((glm::ivec2(x-1, y-1)/3) + glm::ivec2(1)) * glm::ivec2(thick_line_width - thin_line_width)
+                + (glm::ivec2(x-1, y-1) * static_cast<int>(cell_width_height));
+            if (c.flags.enabled && c.value) {
+                // Render value num
                 {
-                    const TGlyph &g = mark_glyph[i-1];
-                    const FT_BitmapGlyph  bit = reinterpret_cast<FT_BitmapGlyph>(g.image);
-                    const glm::ivec2 mark_begin = cell_begin + glm::ivec2(4) + glm::ivec2((i-1) %3, (i-1)/3) * static_cast<int>((cell_width_height-8)/3);
-                    const int penX = mark_begin.x + cell_width_height/6 - (g.bbox.xMax - g.bbox.xMin)/2;
-                    const int penY = mark_begin.y + cell_width_height/6 - (g.bbox.yMax - g.bbox.yMin)/2;
-                    tex->paintGlyph(bit->bitmap, penX, penY, c.marks[i].wrong);
+                    const TGlyph &g = value_glyph[c.value-1];
+                    const FT_BitmapGlyph bit = reinterpret_cast<FT_BitmapGlyph>(g.image);
+                    const int penX = cell_begin.x + cell_width_height/2 - (g.bbox.xMax - g.bbox.xMin)/2;
+                    const int penY = cell_begin.y + cell_width_height/2 - (g.bbox.yMax - g.bbox.yMin)/2;
+                    tex->paintGlyph(bit->bitmap, penX, penY, c.flags.wrong);
+                }
+            } else {
+                for (int i = 1; i <= 9; ++i) {
+                    if (c.marks[i].enabled) {
+                        // Render mark num
+                        {
+                            const TGlyph &g = mark_glyph[i-1];
+                            const FT_BitmapGlyph  bit = reinterpret_cast<FT_BitmapGlyph>(g.image);
+                            const glm::ivec2 mark_begin = cell_begin + glm::ivec2(4) + glm::ivec2((i-1) %3, (i-1)/3) * static_cast<int>((cell_width_height-8)/3);
+                            const int penX = mark_begin.x + cell_width_height/6 - (g.bbox.xMax - g.bbox.xMin)/2;
+                            const int penY = mark_begin.y + cell_width_height/6 - (g.bbox.yMax - g.bbox.yMin)/2;
+                            tex->paintGlyph(bit->bitmap, penX, penY, c.marks[i].wrong);
+                        }
+                    }
                 }
             }
         }
+        if (redraw_queue.size()) {
+            updateRequired = true;
+            redraw_queue.clear();
+        }
     }
-    tex->updateTex();
+    if (updateRequired)
+        tex->updateTex();
+}
+void BoardOverlay::queueRedrawAllCells() {
+    for (int i = 1; i <= 9; ++i)
+        for (int j = 1; j <= 9; ++j)
+            queueRedrawCell(i, j);
+}
+void BoardOverlay::queueRedrawCell(const int &x, const int &y) {
+    if (x<1 || x > 9 || y< 1 || y > 9) {
+        THROW OutOfBounds("Cell coordinate [%d][%d] is out of bounds, valid cell coordinates are in the range [1-9][1-9].\n", x, y);
+    }
+    const std::lock_guard<std::mutex> lock(redraw_queue_mutex);
+    redraw_queue.emplace(std::make_pair(x, y));
 }
 
 /**

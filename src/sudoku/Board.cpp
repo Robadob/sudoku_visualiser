@@ -20,6 +20,9 @@ std::shared_ptr<BoardOverlay> Board::getOverlay(const unsigned int &dims) {
 void Board::killOverlay() {
     overlay = nullptr;
 }
+bool Board::hasOverlay() const {
+    return overlay != nullptr;
+}
 void Board::setSelectedCell(const int &x, const int &y) {
     selected_cell = glm::ivec2(x, y);
     overlay->selectCell(x, y);
@@ -51,7 +54,7 @@ void Board::handleNumberPress(const int &number, bool shift, bool ctrl, bool alt
             c = number;
         }
         // Tell cell to redraw
-        overlay->redrawCell(selected_cell.x, selected_cell.y);
+        overlay->queueRedrawCell(selected_cell.x, selected_cell.y);
     }
 }
 

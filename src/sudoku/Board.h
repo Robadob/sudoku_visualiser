@@ -61,14 +61,19 @@ class Board {
      */
     CellRow &operator[](const int &x);
     /**
-     * Creates and returns the overlay
+     * Creates the overlay if it doesn't already exist, and returns it's shared_ptr
+     * @param dims If creating the overlay, it will be given these dimensions
      */
-    std::shared_ptr<BoardOverlay> getOverlay(const unsigned int &dims);
+    std::shared_ptr<BoardOverlay> getOverlay(const unsigned int &dims = 720);
     /**
      * Kill the overlay, without losing the board state
      * This should be called before GL context is destroyed
      */
     void killOverlay();
+    /**
+     * States whether overlay exists
+     */
+    bool hasOverlay() const;
     /**
      * Sets the selected cell
      * Triggers the overlay to update

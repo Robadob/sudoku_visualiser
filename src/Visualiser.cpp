@@ -114,6 +114,8 @@ void Visualiser::run() {
             while (this->continueRender) {
                 //  Update the fps in the window title
                 this->updateFPS();
+                if (this->sudoku_board->hasOverlay())
+                    this->sudoku_board->getOverlay()->update();
                 this->render();
             }
             SDL_StopTextInput();
@@ -128,7 +130,7 @@ void Visualiser::run() {
             }
             // Hide window
             SDL_HideWindow(window);
-            //  New, might not be required
+            // New, might not be required
             // SDL_DestroyWindow(this->window);
             // this->window = nullptr;
         }

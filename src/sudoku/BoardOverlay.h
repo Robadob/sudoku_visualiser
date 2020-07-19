@@ -6,7 +6,9 @@
 #include <freetype/ftglyph.h>
 
 #include <memory>
-#include <string>
+#include <mutex>
+#include <set>
+#include <utility>
 
 #include "Overlay.h"
 
@@ -77,17 +79,18 @@ class BoardOverlay : public Overlay {
     void handleMouseDrag(const int &x, const int &y, const MouseButtonState &buttons) override;
     void loseFocus() override;
     void selectCell(const int &x, const int &y);
+    void update();
     /**
      * Redraw the texture of the specified cell
      * This resets the texture and replaces the glypths
      * @param x Cell x coord (1-indexed)
      * @param y Cell y coord (1-indexed)
      */
-    void redrawCell(const int &x, const int &y);
+    void queueRedrawCell(const int &x, const int &y);
     /**
      * Triggers redrawCell(int, int) for every cell
      */
-    void redrawAllCells();
+    void queueRedrawAllCells();
 
  private:
     void scaleBoard(const unsigned int &width_height);
@@ -112,6 +115,12 @@ class BoardOverlay : public Overlay {
     TGlyph value_glyph[9], mark_glyph[9];
     unsigned int value_height, mark_height;
     std::shared_ptr<BoardTex> tex;
+
+    /**
+     * Cells to be redrawn
+     */
+    std::set<std::pair<int, int>> redraw_queue;
+    std::mutex redraw_queue_mutex;
 };
 
 

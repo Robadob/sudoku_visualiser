@@ -48,6 +48,7 @@ unsigned int HUD::remove(std::shared_ptr<Overlay> overlay) {
 }
 void HUD::clear() {
     stack.clear();
+    focused_item.reset();
 }
 unsigned int HUD::getCount() {
     return static_cast<unsigned int>(stack.size());
@@ -101,9 +102,9 @@ void HUD::handleMouseDown(const int &x, const int &y, const MouseButtonState& bu
         const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(intersected_item->data)[1].x, static_cast<glm::vec3*>(intersected_item->data)[1].y);
         intersected_item->overlay->handleMouseDown(x-bottomLeft.x, y-bottomLeft.y, buttons);
     }
-    if (intersected_item != focused_item) {
-        if (focused_item)
-            focused_item->overlay->loseFocus();
+    const auto fi = focused_item.lock();
+    if (fi && intersected_item != fi) {
+            fi->overlay->loseFocus();
         focused_item = intersected_item;
     }
 }
@@ -125,9 +126,9 @@ void HUD::handleMouseUp(const int &x, const int &y, const MouseButtonState& butt
         const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(intersected_item->data)[1].x, static_cast<glm::vec3*>(intersected_item->data)[1].y);
         intersected_item->overlay->handleMouseUp(x-bottomLeft.x, y-bottomLeft.y, buttons);
     }
-    if (intersected_item != focused_item) {
-        if (focused_item)
-            focused_item->overlay->loseFocus();
+    const auto fi = focused_item.lock();
+    if (fi && intersected_item != fi) {
+            fi->overlay->loseFocus();
         focused_item = intersected_item;
     }
 }
