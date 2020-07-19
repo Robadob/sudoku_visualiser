@@ -27,6 +27,11 @@ void Board::setSelectedCell(const int &x, const int &y) {
     selected_cell = glm::ivec2(x, y);
     overlay->selectCell(x, y);
 }
+void Board::shiftSelectedCell(const int &x, const int &y) {
+    selected_cell += glm::ivec2(x, y);
+    selected_cell = glm::clamp(selected_cell, glm::ivec2(1), glm::ivec2(9));
+    overlay->selectCell(selected_cell.x, selected_cell.y);
+}
 const glm::ivec2 &Board::getSelectedCell() {
     return selected_cell;
 }

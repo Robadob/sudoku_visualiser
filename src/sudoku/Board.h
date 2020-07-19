@@ -79,6 +79,7 @@ class Board {
      * Triggers the overlay to update
      */
     void setSelectedCell(const int &x, const int &y);
+    void shiftSelectedCell(const int &x, const int &y);
     /**
      * Returns the selected cell
      */

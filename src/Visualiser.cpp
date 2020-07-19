@@ -394,6 +394,11 @@ void Visualiser::handleKeypress(SDL_Keycode keycode, const Uint8 *keyboard_state
         }
         break;
     }
+    // Sudoku Arrow
+    case SDLK_LEFT:  sudoku_board->shiftSelectedCell(-1, +0); break;
+    case SDLK_RIGHT: sudoku_board->shiftSelectedCell(+1, +0); break;
+    case SDLK_UP:    sudoku_board->shiftSelectedCell(+0, -1); break;
+    case SDLK_DOWN:  sudoku_board->shiftSelectedCell(+0, +1); break;
     // Sudoku Number
     case SDLK_BACKSPACE:
     case SDLK_0: case SDLK_1: case SDLK_2: case SDLK_3:case SDLK_4:
