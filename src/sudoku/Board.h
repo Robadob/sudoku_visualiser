@@ -28,15 +28,15 @@ class Board {
      * Represents a single number that can be written into a sudoku board
      */
     struct Cell {
-        struct Flags {
-            unsigned char enabled:1;
-            unsigned char wrong:1;
-        };
         /**
          * The mini numbers within a cell
          * Only visible when the value for the cell is not set
          */
         struct Marks {
+            struct Flags {
+                unsigned char enabled:1;
+                unsigned char wrong:1;
+            };
             Flags flags[9];
             /**
              * Toggles the specified mark's state between enabled/disabled
@@ -57,12 +57,16 @@ class Board {
         bool operator!=(const int &other);
         bool operator!=(const Cell &other);
         /**
+         * Disable all marks
+         */
+        void clearMarks();
+        /**
          * Sets the value of the cell
          * If 0 is passed, the cell is reset
          */
         Cell &operator=(const int &i);
         unsigned char value:4;
-        Flags flags;
+        unsigned char wrong:1;
         Marks marks;
     };
     /**

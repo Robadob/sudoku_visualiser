@@ -32,12 +32,12 @@ bool columns(Board &board) {
         // If the array value has already been set, mark both as wrong
         for (int y = 1; y <= 9; ++y) {
             Board::Cell &c = board[x][y];
-            if (c.value && c.flags.enabled) {
+            if (c.value) {
                 Pos &loc = vals[c.value-1];
                 if (loc) {
                     // Location is already set
-                    c.flags.wrong = true;
-                    board[loc.x][loc.y].flags.wrong = true;
+                    c.wrong = true;
+                    board[loc.x][loc.y].wrong = true;
                     wrongCount++;
                 } else {
                     // Location is fresh
@@ -58,12 +58,12 @@ bool rows(Board &board) {
         // If the array value has already been set, mark both as wrong
         for (int x = 1; x <= 9; ++x) {
             Board::Cell &c = board[x][y];
-            if (c.value && c.flags.enabled) {
+            if (c.value) {
                 Pos &loc = vals[c.value-1];
                 if (loc) {
                     // Location is already set
-                    c.flags.wrong = true;
-                    board[loc.x][loc.y].flags.wrong = true;
+                    c.wrong = true;
+                    board[loc.x][loc.y].wrong = true;
                     wrongCount++;
                 } else {
                     // Location is fresh
@@ -86,12 +86,12 @@ bool squares(Board &board) {
             for (int x = i * 3 + 1; x <= i * 3 + 3; ++x) {
                 for (int y = j * 3 + 1; y <= j * 3 + 3; ++y) {
                     Board::Cell &c = board[x][y];
-                    if (c.value && c.flags.enabled) {
+                    if (c.value) {
                         Pos &loc = vals[c.value-1];
                         if (loc) {
                             // Location is already set
-                            c.flags.wrong = true;
-                            board[loc.x][loc.y].flags.wrong = true;
+                            c.wrong = true;
+                            board[loc.x][loc.y].wrong = true;
                             wrongCount++;
                         } else {
                             // Location is fresh

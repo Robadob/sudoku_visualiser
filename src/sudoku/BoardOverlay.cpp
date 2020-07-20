@@ -193,14 +193,14 @@ void BoardOverlay::update() {
             const glm::ivec2 cell_begin = static_cast<int>(thin_line_width) * glm::ivec2(x, y)
                 + ((glm::ivec2(x-1, y-1)/3) + glm::ivec2(1)) * glm::ivec2(thick_line_width - thin_line_width)
                 + (glm::ivec2(x-1, y-1) * static_cast<int>(cell_width_height));
-            if (c.flags.enabled && c.value) {
+            if (c.value) {
                 // Render value num
                 {
                     const TGlyph &g = value_glyph[c.value-1];
                     const FT_BitmapGlyph bit = reinterpret_cast<FT_BitmapGlyph>(g.image);
                     const int penX = cell_begin.x + cell_width_height/2 - (g.bbox.xMax - g.bbox.xMin)/2;
                     const int penY = cell_begin.y + cell_width_height/2 - (g.bbox.yMax - g.bbox.yMin)/2;
-                    tex->paintGlyph(bit->bitmap, penX, penY, c.flags.wrong);
+                    tex->paintGlyph(bit->bitmap, penX, penY, c.wrong);
                 }
             } else {
                 for (int i = 1; i <= 9; ++i) {

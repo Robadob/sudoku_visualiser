@@ -49,22 +49,55 @@ void Board::handleNumberPress(const int &number, bool shift, bool ctrl, bool alt
     if (selected_cell.x > 0 && selected_cell.x <= 9 &&
         selected_cell.y > 0 && selected_cell.y <= 9) {
         Cell &c = (*this)[selected_cell.x][selected_cell.y];
-        if (shift) {
-            // Ensure main value is disabled (don't set 0, that nukes marks)
-            c.flags.enabled = false;
-            // Toggle the user's mark
-            c.marks[number].enabled = !c.marks[number].enabled;
-        } else if (ctrl) {
-            // Ensure main value is disabled (don't set 0, that nukes marks)
-            c.flags.enabled = false;
-            // Set the mark enabled
-            c.marks[number].enabled = true;
-            // Flag the mark to be painted red
-            c.marks[number].wrong = !c.marks[number].wrong;
+        if (shift && !ctrl) {
+            // Ensure main value is disabled
+            c = 0;
+            if (number) {
+                // Toggle the user's mark
+                c.marks[number].enabled = !c.marks[number].enabled;
+                // Clear wrong flag
+                c.marks[number].wrong = false;
+            } else {
+                // User pressed shift + 0, set all marks
+                // (They can just press 0 to clear all marks)
+                for (int i = 1; i <= 9; ++i) {
+                    c.marks[i].enabled = true;
+                }
+            }
+        } else if (ctrl && !shift) {
+            // Ensure main value is disabled
+            c = 0;
+            if (number) {
+                // Set the mark enabled
+                c.marks[number].enabled = true;
+                // Flag the mark to be painted red
+                c.marks[number].wrong = !c.marks[number].wrong;
+            } else {
+                // User pressed ctrl + 0
+                // If they have any marks enabled + wrong, disable all, else enable all
+                bool has_wrong = false;
+                for (int i = 1; i <= 9; ++i) {
+                    if (c.marks[i].enabled && c.marks[i].wrong) {
+                        has_wrong = true;
+                        break;
+                    }
+                }
+                if (has_wrong) {
+                    for (int i = 1; i <= 9; ++i) {
+                        c.marks[i].wrong = false;
+                    }
+                } else {
+                    for (int i = 1; i <= 9; ++i) {
+                        if (c.marks[i].enabled)
+                            c.marks[i].wrong = true;
+                    }
+                }
+            }
         } else {
             // Change value to number
-            // This resets if the number is 0
+            // This disables the cell if the number is 0
             c = number;
+            c.clearMarks();
         }
         // Tell to validate, this forces redraw all
         validate();
@@ -87,7 +120,7 @@ bool Board::validate() {
 void Board::clearWrong() {
     for (int x = 1; x<= 9; ++x) {
         for (int y = 1; y<= 9; ++y) {
-            (*this)[x][y].flags.wrong = false;
+            (*this)[x][y].wrong = false;
         }
     }
 }
@@ -95,7 +128,7 @@ void Board::clearWrong() {
 /**
  * Nested util class methods
  */
-Board::Cell::Flags &Board::Cell::Marks::operator[](const int &i) {
+Board::Cell::Marks::Flags &Board::Cell::Marks::operator[](const int &i) {
     if (i < 1 || i > 9) {
         THROW OutOfBounds("Mark index [%d] is out of bounds, valid indexes are in the range [1-9].\n", i);
     }
@@ -104,14 +137,14 @@ Board::Cell::Flags &Board::Cell::Marks::operator[](const int &i) {
 
 Board::Cell::Cell()
     : value(0)
-    , flags({})
+    , wrong(false)
     , marks({}) { }
 
 bool Board::Cell::operator==(const int &other) {
-    return this->value == other && this->flags.enabled && this->value != 0;
+    return this->value == other && this->value != 0;
 }
 bool Board::Cell::operator==(const Cell &other) {
-    return this->value == other.value && this->flags.enabled && other.flags.enabled && this->value != 0;
+    return this->value == other.value && this->value != 0;
 }
 bool Board::Cell::operator!=(const int &other) {
     return !(*this == other);
@@ -123,20 +156,8 @@ Board::Cell &Board::Cell::operator=(const int &i) {
     if (i < 0 || i > 9) {
         THROW OutOfBounds("Value of %d is out of bounds, valid indexes are in the range [0-9].\n", i);
     }
-    if (i == 0) {
-        // Reset square
-        flags.enabled = false;
-        flags.wrong = false;
-    } else {
-        // Enable var
-        flags.enabled = true;
-    }
     value = i;
-    // Kill all marks
-    for (int f = 1; f <= 9; ++f) {
-        marks[f].enabled = false;
-        marks[f].wrong = false;
-    }
+    wrong = false;
     return *this;
 }
 Board::Cell &Board::CellRow::operator[](const int &y) {
@@ -144,4 +165,11 @@ Board::Cell &Board::CellRow::operator[](const int &y) {
         THROW OutOfBounds("Cell y-index [%d] is out of bounds, valid indexes are in the range [1-9].\n", y);
     }
     return cols[y-1];
+}
+void Board::Cell::clearMarks() {
+    // Kill all marks
+    for (int f = 1; f <= 9; ++f) {
+        marks[f].enabled = false;
+        marks[f].wrong = false;
+    }
 }

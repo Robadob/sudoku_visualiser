@@ -137,7 +137,7 @@ void Visualiser::run() {
                         notificationDisplay->setColor(fg);
                         notificationDisplay->setBackgroundColor(bg);
                         if (notification_timout < currentTime) {
-                            // Due to use of uint to calculate diff, colors are reset to max alpha on exit
+                            // Due to use of uint to calculate diff, colors are always reset to max alpha on exit
                             notification_timout = 0;
                             notificationDisplay->setVisible(false);
                         }
