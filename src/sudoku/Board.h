@@ -3,6 +3,9 @@
 
 #include <memory>
 #include <string>
+#include <array>
+#include <stack>
+#include <utility>
 
 #include "sudoku/BoardOverlay.h"
 
@@ -25,6 +28,49 @@ inline std::string to_string(const Mode&m) {
 class Board {
  public:
     /**
+     * Represents a location on the board
+     */
+    struct Pos {
+        Pos() : x(0), y(0) { }
+        Pos(const int &_x, const int &_y) : x(_x), y(_y) { }  // Should probably do some validation to check in range
+        explicit Pos(const glm::ivec2&xy) : x(xy.x), y(xy.y) { }  // Should probably do some validation to check in range
+        int x : 5, y: 5;
+        /**
+         * Returns true if the position is valid
+         */
+        explicit operator bool() const {
+            return x >= 1 && x <= 9 && y >= 1 && y <= 9;
+        }
+        operator glm::ivec2() const {
+            return glm::ivec2(x, y);
+        }
+        Pos &operator=(const glm::ivec2 &xy) {
+            x = xy.x;
+            y = xy.y;
+            return *this;
+        }
+        Pos &operator+=(const Pos &xy) {
+            x += xy.x;
+            y += xy.y;
+            return *this;
+        }
+        Pos &operator+=(const glm::ivec2 &xy) {
+            x += xy.x;
+            y += xy.y;
+            return *this;
+        }
+        Pos &operator-=(const Pos &xy) {
+            x -= xy.x;
+            y -= xy.y;
+            return *this;
+        }
+        Pos &operator-=(const glm::ivec2 &xy) {
+            x -= xy.x;
+            y -= xy.y;
+            return *this;
+        }
+    };
+    /**
      * Represents a single number that can be written into a sudoku board
      */
     struct Cell {
@@ -37,7 +83,7 @@ class Board {
                 unsigned char enabled:1;
                 unsigned char wrong:1;
             };
-            Flags flags[9];
+            std::array<Flags, 9> flags;
             /**
              * Toggles the specified mark's state between enabled/disabled
              */
@@ -113,12 +159,12 @@ class Board {
     /**
      * Returns the selected cell
      */
-    const glm::ivec2 &getSelectedCell();
+    const Pos &getSelectedCell();
     /**
      * Processes the corresponding number being pressed with the provided modifier keys
      * When number == 0, it is considered delete/reset
      */
-    void handleNumberPress(const int &number, bool shift, bool ctrl, bool alt);
+    void handleKeyPress(const int &keycode, bool shift, bool ctrl, bool alt);
     /**
      * Validates according to current_mode
      * Clears wrong flag, and newly sets wrong to True for affected cells
@@ -137,7 +183,7 @@ class Board {
     /**
      * Selected cell, anything out of bounds [1-9][1-9] counts as disabled
      */
-    glm::ivec2 selected_cell;
+    Pos selected_cell;
     /**
      * Never access this directly
      */
@@ -146,6 +192,10 @@ class Board {
      * The overlay for rendering the board
      */
     std::shared_ptr<BoardOverlay> overlay = nullptr;
+
+    typedef std::pair<Board::Pos, Cell> UndoPair;
+    std::stack<UndoPair> undoStack;
+    std::stack<UndoPair> redoStack;
 };
 
 #endif  // SRC_SUDOKU_BOARD_H_

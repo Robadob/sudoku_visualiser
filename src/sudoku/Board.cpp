@@ -1,11 +1,11 @@
 #include "Board.h"
 
+#include <SDL_keycode.h>
 
 #include "ConstraintValidator.h"
 #include "util/VisException.h"
 
-Board::Board()
-    : selected_cell(-1) { }
+Board::Board() { }
 
 Board::CellRow &Board::operator[](const int &x) {
     if (x < 1 || x > 9) {
@@ -32,11 +32,11 @@ void Board::setSelectedCell(const int &x, const int &y) {
 }
 void Board::shiftSelectedCell(const int &x, const int &y) {
     selected_cell += glm::ivec2(x, y);
-    selected_cell = glm::clamp(selected_cell, glm::ivec2(1), glm::ivec2(9));
+    selected_cell = glm::clamp(static_cast<glm::ivec2>(selected_cell), glm::ivec2(1), glm::ivec2(9));
     if (overlay)
         overlay->selectCell(selected_cell.x, selected_cell.y);
 }
-const glm::ivec2 &Board::getSelectedCell() {
+const Board::Pos &Board::getSelectedCell() {
     return selected_cell;
 }
 void Board::setMode(const Mode &mode) {
@@ -44,63 +44,96 @@ void Board::setMode(const Mode &mode) {
     validate();
 }
 
-void Board::handleNumberPress(const int &number, bool shift, bool ctrl, bool alt) {
-    // If we have a selection
-    if (selected_cell.x > 0 && selected_cell.x <= 9 &&
-        selected_cell.y > 0 && selected_cell.y <= 9) {
-        Cell &c = (*this)[selected_cell.x][selected_cell.y];
-        if (shift && !ctrl) {
-            // Ensure main value is disabled
-            c = 0;
-            if (number) {
-                // Toggle the user's mark
-                c.marks[number].enabled = !c.marks[number].enabled;
-                // Clear wrong flag
-                c.marks[number].wrong = false;
-            } else {
-                // User pressed shift + 0, set all marks
-                // (They can just press 0 to clear all marks)
-                for (int i = 1; i <= 9; ++i) {
-                    c.marks[i].enabled = true;
-                }
-            }
-        } else if (ctrl && !shift) {
-            // Ensure main value is disabled
-            c = 0;
-            if (number) {
-                // Set the mark enabled
-                c.marks[number].enabled = true;
-                // Flag the mark to be painted red
-                c.marks[number].wrong = !c.marks[number].wrong;
-            } else {
-                // User pressed ctrl + 0
-                // If they have any marks enabled + wrong, disable all, else enable all
-                bool has_wrong = false;
-                for (int i = 1; i <= 9; ++i) {
-                    if (c.marks[i].enabled && c.marks[i].wrong) {
-                        has_wrong = true;
-                        break;
-                    }
-                }
-                if (has_wrong) {
-                    for (int i = 1; i <= 9; ++i) {
-                        c.marks[i].wrong = false;
-                    }
-                } else {
-                    for (int i = 1; i <= 9; ++i) {
-                        if (c.marks[i].enabled)
-                            c.marks[i].wrong = true;
-                    }
-                }
-            }
-        } else {
-            // Change value to number
-            // This disables the cell if the number is 0
-            c = number;
-            c.clearMarks();
+void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bool alt) {
+    if (keycode == SDLK_z && ctrl && !shift) {
+        // Undo
+        if (!undoStack.empty()) {
+            UndoPair undo = undoStack.top();
+            undoStack.pop();
+            // Swap the cell off stack with cell on board
+            std::swap(undo.second, (*this)[undo.first.x][undo.first.y]);
+            // Move the UndoPair into the redo stack
+            redoStack.push(undo);
+            // Tell to validate, this forces redraw all
+            validate();
         }
-        // Tell to validate, this forces redraw all
-        validate();
+    } else if (keycode == SDLK_y && ctrl && !shift) {
+        // Redo
+        if (!redoStack.empty()) {
+            UndoPair redo = redoStack.top();
+            redoStack.pop();
+            // Swap the cell off stack with cell on board
+            std::swap(redo.second, (*this)[redo.first.x][redo.first.y]);
+            // Move the UndoPair into the redo stack
+            undoStack.push(redo);
+            // Tell to validate, this forces redraw all
+            validate();
+        }
+    } else {
+        // If we have a selection
+        if (selected_cell.x > 0 && selected_cell.x <= 9 &&
+            selected_cell.y > 0 && selected_cell.y <= 9) {
+            int number = keycode == SDLK_BACKSPACE ? 0 : keycode- SDLK_0;
+            if (number < 0 || number > 9)
+                return;
+            // Clear redo stack as soon as user makes a change
+            while (!redoStack.empty()) { redoStack.pop(); }
+            Cell &c = (*this)[selected_cell.x][selected_cell.y];
+            // Add the selected cell to the undo stack
+            undoStack.push(std::make_pair(selected_cell, c));
+            if (shift && !ctrl) {
+                // Ensure main value is disabled
+                c = 0;
+                if (number) {
+                    // Toggle the user's mark
+                    c.marks[number].enabled = !c.marks[number].enabled;
+                    // Clear wrong flag
+                    c.marks[number].wrong = false;
+                } else {
+                    // User pressed shift + 0, set all marks
+                    // (They can just press 0 to clear all marks)
+                    for (int i = 1; i <= 9; ++i) {
+                        c.marks[i].enabled = true;
+                    }
+                }
+            } else if (ctrl && !shift) {
+                // Ensure main value is disabled
+                c = 0;
+                if (number) {
+                    // Set the mark enabled
+                    c.marks[number].enabled = true;
+                    // Flag the mark to be painted red
+                    c.marks[number].wrong = !c.marks[number].wrong;
+                } else {
+                    // User pressed ctrl + 0
+                    // If they have any marks enabled + wrong, disable all, else enable all
+                    bool has_wrong = false;
+                    for (int i = 1; i <= 9; ++i) {
+                        if (c.marks[i].enabled && c.marks[i].wrong) {
+                            has_wrong = true;
+                            break;
+                        }
+                    }
+                    if (has_wrong) {
+                        for (int i = 1; i <= 9; ++i) {
+                            c.marks[i].wrong = false;
+                        }
+                    } else {
+                        for (int i = 1; i <= 9; ++i) {
+                            if (c.marks[i].enabled)
+                                c.marks[i].wrong = true;
+                        }
+                    }
+                }
+            } else {
+                // Change value to number
+                // This disables the cell if the number is 0
+                c = number;
+                c.clearMarks();
+            }
+            // Tell to validate, this forces redraw all
+            validate();
+        }
     }
 }
 bool Board::validate() {

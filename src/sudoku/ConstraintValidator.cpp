@@ -6,15 +6,6 @@
 
 namespace ConstraintValidator {
 namespace {
-struct Pos {
-    int x = 0, y = 0;
-    /**
-     * Returns true if the position is valid
-     */
-    explicit operator bool() const {
-        return x >= 1 && x <= 9 && y >= 1 && y <= 9;
-    }
-};
 }  // namespace
 bool vanilla(Board &board) {
     // Need to make sure all 3 are evaluated before we return
@@ -27,13 +18,13 @@ bool columns(Board &board) {
     unsigned int wrongCount = 0;
     // For each column
     for (int x = 1; x <= 9; ++x) {
-        std::array<Pos, 9> vals;
+        std::array<Board::Pos, 9> vals;
         // Assign first value found to it's location in the array
         // If the array value has already been set, mark both as wrong
         for (int y = 1; y <= 9; ++y) {
             Board::Cell &c = board[x][y];
             if (c.value) {
-                Pos &loc = vals[c.value-1];
+                Board::Pos &loc = vals[c.value-1];
                 if (loc) {
                     // Location is already set
                     c.wrong = true;
@@ -53,13 +44,13 @@ bool rows(Board &board) {
     unsigned int wrongCount = 0;
     // For each row
     for (int y = 1; y <= 9; ++y) {
-        std::array<Pos, 9> vals;
+        std::array<Board::Pos, 9> vals;
         // Assign first value found to it's location in the array
         // If the array value has already been set, mark both as wrong
         for (int x = 1; x <= 9; ++x) {
             Board::Cell &c = board[x][y];
             if (c.value) {
-                Pos &loc = vals[c.value-1];
+                Board::Pos &loc = vals[c.value-1];
                 if (loc) {
                     // Location is already set
                     c.wrong = true;
@@ -80,14 +71,14 @@ bool squares(Board &board) {
     // For each square
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
-            std::array<Pos, 9> vals;
+            std::array<Board::Pos, 9> vals;
             // Assign first value found to it's location in the array
             // If the array value has already been set, mark both as wrong
             for (int x = i * 3 + 1; x <= i * 3 + 3; ++x) {
                 for (int y = j * 3 + 1; y <= j * 3 + 3; ++y) {
                     Board::Cell &c = board[x][y];
                     if (c.value) {
-                        Pos &loc = vals[c.value-1];
+                        Board::Pos &loc = vals[c.value-1];
                         if (loc) {
                             // Location is already set
                             c.wrong = true;

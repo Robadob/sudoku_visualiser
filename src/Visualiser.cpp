@@ -439,22 +439,16 @@ void Visualiser::handleKeypress(SDL_Keycode keycode, const Uint8 *keyboard_state
     case SDLK_RIGHT: sudoku_board->shiftSelectedCell(+1, +0); break;
     case SDLK_UP:    sudoku_board->shiftSelectedCell(+0, -1); break;
     case SDLK_DOWN:  sudoku_board->shiftSelectedCell(+0, +1); break;
-    // Sudoku Number
-    case SDLK_BACKSPACE:
-    case SDLK_0: case SDLK_1: case SDLK_2: case SDLK_3:case SDLK_4:
-    case SDLK_5: case SDLK_6: case SDLK_7: case SDLK_8:case SDLK_9: {
+    default:
         if (this->sudoku_board) {
             bool shift_state = keyboard_state[SDL_SCANCODE_LSHIFT] || keyboard_state[SDL_SCANCODE_RSHIFT];
             bool ctrl_state = keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL];
             bool alt_state = keyboard_state[SDL_SCANCODE_LALT] || keyboard_state[SDL_SCANCODE_RALT];
-            // Convert keycode to number [0-9] (0, acts as clear)
-            keycode = keycode == SDLK_BACKSPACE ? 0 : keycode- SDLK_0;
-            sudoku_board->handleNumberPress(keycode, shift_state, ctrl_state, alt_state);
+            // Convert keycode to number [0-9] (0 and backspace, acts as clear)
+            // Set marks ctrl/shift + number [0-9]
+            // Ctrl z/y, edit undo/redo
+            sudoku_board->handleKeyPress(keycode, shift_state, ctrl_state, alt_state);
         }
-        break;
-    }
-    default:
-        //  Do nothing?
         break;
     }
 }
