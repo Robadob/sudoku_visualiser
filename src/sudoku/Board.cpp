@@ -48,10 +48,10 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
     if (keycode == SDLK_z && ctrl && !shift) {
         // Undo
         if (!undoStack.empty()) {
-            UndoPair undo = undoStack.top();
+            RawBoard undo = undoStack.top();
             undoStack.pop();
             // Swap the cell off stack with cell on board
-            std::swap(undo.second, (*this)[undo.first.x][undo.first.y]);
+            std::swap(undo, cell_rows);
             // Move the UndoPair into the redo stack
             redoStack.push(undo);
             // Tell to validate, this forces redraw all
@@ -60,10 +60,10 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
     } else if (keycode == SDLK_y && ctrl && !shift) {
         // Redo
         if (!redoStack.empty()) {
-            UndoPair redo = redoStack.top();
+            RawBoard redo = redoStack.top();
             redoStack.pop();
             // Swap the cell off stack with cell on board
-            std::swap(redo.second, (*this)[redo.first.x][redo.first.y]);
+            std::swap(redo, cell_rows);
             // Move the UndoPair into the redo stack
             undoStack.push(redo);
             // Tell to validate, this forces redraw all
@@ -80,7 +80,7 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
             while (!redoStack.empty()) { redoStack.pop(); }
             Cell &c = (*this)[selected_cell.x][selected_cell.y];
             // Add the selected cell to the undo stack
-            undoStack.push(std::make_pair(selected_cell, c));
+            undoStack.push(cell_rows);
             if (shift && !ctrl) {
                 // Ensure main value is disabled
                 c = 0;
@@ -126,10 +126,16 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
                     }
                 }
             } else {
-                // Change value to number
-                // This disables the cell if the number is 0
-                c = number;
-                c.clearMarks();
+                if (c != number) {
+                    // Change value to number
+                    // This disables the cell if the number is 0
+                    c = number;
+                    c.clearMarks();
+                } else {
+                    // User action has no effect, so remove it off the undo stack
+                    undoStack.pop();
+                    return;
+                }
             }
             // Tell to validate, this forces redraw all
             validate();

@@ -360,6 +360,7 @@ void Visualiser::resizeWindow() {
 void Visualiser::deallocateGLObjects() {
     sudoku_board->killOverlay();
     fpsDisplay.reset();
+    notificationDisplay.reset();
     this->hud->clear();
 }
 

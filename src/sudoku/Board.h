@@ -34,7 +34,7 @@ class Board {
         Pos() : x(0), y(0) { }
         Pos(const int &_x, const int &_y) : x(_x), y(_y) { }  // Should probably do some validation to check in range
         explicit Pos(const glm::ivec2&xy) : x(xy.x), y(xy.y) { }  // Should probably do some validation to check in range
-        int x : 5, y: 5;
+        unsigned char x : 4, y: 4;
         /**
          * Returns true if the position is valid
          */
@@ -95,7 +95,7 @@ class Board {
         Cell();
         /**
          * Comparison operator
-         * Comparses the value member
+         * Compares the value member
          * If value == 0, or cell is not enabled, it cannot be a match
          */
         bool operator==(const int &other);
@@ -125,7 +125,7 @@ class Board {
          * 1-indexed
          */
         Cell &operator[](const int &y);
-        Cell cols[9];
+        std::array<Cell, 9> cols;
     };
     /**
      * Basic constructor
@@ -187,15 +187,15 @@ class Board {
     /**
      * Never access this directly
      */
-    CellRow cell_rows[9];
+    typedef std::array<CellRow, 9> RawBoard;
+    RawBoard cell_rows;
     /**
      * The overlay for rendering the board
      */
     std::shared_ptr<BoardOverlay> overlay = nullptr;
 
-    typedef std::pair<Board::Pos, Cell> UndoPair;
-    std::stack<UndoPair> undoStack;
-    std::stack<UndoPair> redoStack;
+    std::stack<RawBoard> undoStack;
+    std::stack<RawBoard> redoStack;
 };
 
 #endif  // SRC_SUDOKU_BOARD_H_
