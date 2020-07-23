@@ -16,7 +16,7 @@ Board::Cell &Board::operator()(const int &x, const int &y) {
     if (y < 1 || y > 9) {
         THROW OutOfBounds("Cell y-index [%d] is out of bounds, valid indexes are in the range [1-9].\n", y);
     }
-    return transposeState ? cell_rows[y-1][x-1] : cell_rows[x-1][y-1];
+    return transposeState ? raw_board[y-1][x-1] : raw_board[x-1][y-1];
 }
 Board::Cell &Board::operator()(const Pos &xy) {
     return (*this)(xy.x, xy.y);
@@ -59,7 +59,7 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
             RawBoard undo = undoStack.top();
             undoStack.pop();
             // Swap the cell off stack with cell on board
-            std::swap(undo, cell_rows);
+            std::swap(undo, raw_board);
             // Move the UndoPair into the redo stack
             redoStack.push(undo);
             // Tell to validate, this forces redraw all
@@ -71,7 +71,7 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
             RawBoard redo = redoStack.top();
             redoStack.pop();
             // Swap the cell off stack with cell on board
-            std::swap(redo, cell_rows);
+            std::swap(redo, raw_board);
             // Move the UndoPair into the redo stack
             undoStack.push(redo);
             // Tell to validate, this forces redraw all
@@ -90,7 +90,7 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
             while (!redoStack.empty()) { redoStack.pop(); }
             Cell &c = (*this)(selected_cell.x, selected_cell.y);
             // Add the selected cell to the undo stack
-            undoStack.push(cell_rows);
+            undoStack.push(raw_board);
             if (shift && !ctrl) {
                 // Ensure main value is disabled
                 c = 0;
@@ -169,7 +169,7 @@ void Board::hint() {
     // Cannot provide a hint, if board contains errors
     if (lastValidateResult) {
         // Add the selected cell to the undo stack
-        undoStack.push(cell_rows);
+        undoStack.push(raw_board);
         // Enable all marks
         // We do this first, so that subsequent method calls can mark wrong any which are not possible
         for (int x = 1; x <= 9; ++x) {
@@ -182,7 +182,7 @@ void Board::hint() {
             ConstraintHints::vanilla(*this);
         } else {
             // We didn't do anything, so undo the mark changes and return
-            cell_rows = undoStack.top();
+            raw_board = undoStack.top();
             undoStack.pop();
             return;
         }
@@ -213,16 +213,22 @@ Board::Cell::Cell()
     , wrong(false)
     , marks({}) { }
 
-bool Board::Cell::operator==(const int &other) {
+bool Board::Cell::operator==(const int &other) const {
     return this->value == other && this->value != 0;
 }
-bool Board::Cell::operator==(const Cell &other) {
-    return this->value == other.value && this->value != 0;
+bool Board::Cell::operator==(const Cell &other) const {
+    if (this->value == 0 && other.value == 0) {
+        if (this->marks != other.marks)
+            return false;
+    } else if (this->value != other.value) {
+        return false;
+    }
+    return true;
 }
-bool Board::Cell::operator!=(const int &other) {
+bool Board::Cell::operator!=(const int &other) const {
     return !(*this == other);
 }
-bool Board::Cell::operator!=(const Cell &other) {
+bool Board::Cell::operator!=(const Cell &other) const {
     return  !(*this == other);
 }
 Board::Cell &Board::Cell::operator=(const unsigned int &i) {
@@ -247,4 +253,30 @@ void Board::Cell::setMarks() {
             marks[f].wrong = false;
         }
     }
+}
+unsigned char Board::Cell::rawValue() {
+    if (value) {
+        return value;
+    }
+    unsigned int val = 0;
+    for (int f = 1; f <= 9; ++f) {
+        if (marks[f].enabled && !marks[f].wrong) {
+            if (!val)
+                val = f;
+            else
+                return 0;
+        }
+    }
+    return val;
+}
+
+bool Board::Cell::Marks::operator==(const Marks &other) const {
+    for (int f = 0; f < 9; ++f) {
+        if (flags[f].enabled != other.flags[f].enabled || flags[f].wrong != other.flags[f].wrong)
+            return false;
+    }
+    return true;
+}
+bool Board::Cell::Marks::operator!=(const Marks &other) const {
+    return !(*this == other);
 }

@@ -7,6 +7,15 @@
 
 namespace ConstraintHints {
 namespace {
+/**
+ * Use common method for setting marks wrong, so we can change the effect in one place
+ * @param c The affected cell
+ * @param i The mark index
+ */
+void setMarkWrong(Board::Cell &c, const int &i) {
+    // c.marks[i].wrong = true;
+    c.marks[i].enabled = false;
+}
 void columns2(Board &board) {
     // For each square
     for (int i = 0; i < 3; ++i) {
@@ -57,8 +66,7 @@ void columns2(Board &board) {
                             if (!c.value) {
                                 for (int k = 1; k <= 9; ++k) {
                                     if (subcols[x - i * 3 - 1][k - 1]) {
-                                        // c.marks[k].wrong = true;
-                                        c.marks[k].enabled = false;
+                                        setMarkWrong(c, k);
                                     }
                                 }
                             }
@@ -107,8 +115,7 @@ void hiddenSingles(Board &board) {
                                 // Set all other marks to disabled
                                 for (int _k = 1; _k <= 9; ++_k) {
                                     if (_k != k) {
-                                        // c.marks[_k].wrong = true;
-                                        c.marks[_k].enabled = false;
+                                        setMarkWrong(c, _k);
                                     }
                                 }
                             }
@@ -170,8 +177,7 @@ void hiddenDoubles(Board &board) {
                                         // Clear marks in all but k1 and k2
                                         for (unsigned int k = 1; k <= 9; ++k) {
                                             if (k != k1 && k != k2) {
-                                                // c.marks[k].wrong = true;
-                                                c.marks[k].enabled = false;
+                                                setMarkWrong(c, k);
                                             }
                                         }
                                     }
@@ -242,8 +248,7 @@ void hiddenTriples(Board &board) {
                                                 // Clear marks in all but k1 and k2
                                                 for (unsigned int k = 1; k <= 9; ++k) {
                                                     if (k != k1 && k != k2 && k != k3) {
-                                                        // c.marks[k].wrong = true;
-                                                        c.marks[k].enabled = false;
+                                                        setMarkWrong(c, k);
                                                     }
                                                 }
                                             }
@@ -264,20 +269,24 @@ void hiddenTriples(Board &board) {
 }  // namespace
 
 void vanilla(Board &board) {
-    // First order hints, is the rule broken directly
-    columns(board);
-    rows(board);
-    squares(board);
-    // Second order hints, does the impact of a column/row rule on a square (3x3 cell collection)
-    // Implicitly prevent a value in a related square
-    columns2(board);
-    rows2(board);
-    // If a mark only appears once in a square, it is the correct value, so remove other marks
-    hiddenSingles(board);
-    // If two marks only appear twice in a square, and they appear in the same cells, remove other marks from these cells
-    hiddenDoubles(board);
-    // Same pattern as hiddenSingles(), hiddenDoubles() but for triples
-    hiddenTriples(board);
+    Board::RawBoard prev_raw_board = {};
+    do {
+        prev_raw_board = board.getRawBoard();
+        // First order hints, is the rule broken directly
+        columns(board);
+        rows(board);
+        squares(board);
+        // Second order hints, does the impact of a column/row rule on a square (3x3 cell collection)
+        // Implicitly prevent a value in a related square
+        columns2(board);
+        rows2(board);
+        // If a mark only appears once in a square, it is the correct value, so remove other marks
+        hiddenSingles(board);
+        // If two marks only appear twice in a square, and they appear in the same cells, remove other marks from these cells
+        hiddenDoubles(board);
+        // Same pattern as hiddenSingles(), hiddenDoubles() but for triples
+        hiddenTriples(board);
+    } while (prev_raw_board != board.getRawBoard());
 }
 void columns(Board &board) {
     // For each column
@@ -286,18 +295,18 @@ void columns(Board &board) {
         // Count how many of each value appear in the column
         for (int y = 1; y <= 9; ++y) {
             Board::Cell &c = board(x, y);
-            if (c.value) {
-                vals[c.value-1]++;
+            unsigned char val = c.rawValue();
+            if (val) {
+                vals[val-1]++;
             }
         }
         // Now for each cell, where value is not set disable any marks for values that appear in the array
         for (int y = 1; y <= 9; ++y) {
             Board::Cell &c = board(x, y);
-            if (!c.value) {
+            if (!c.rawValue()) {
                 for (int i = 1; i <= 9; ++i) {
                     if (vals[i-1]) {
-                        // c.marks[i].wrong = true;
-                        c.marks[i].enabled = false;
+                        setMarkWrong(c, i);
                     }
                 }
             }
@@ -318,8 +327,9 @@ void squares(Board &board) {
             for (int x = i * 3 + 1; x <= i * 3 + 3; ++x) {
                 for (int y = j * 3 + 1; y <= j * 3 + 3; ++y) {
                     Board::Cell &c = board(x, y);
-                    if (c.value) {
-                        vals[c.value-1]++;
+                    unsigned char val = c.rawValue();
+                    if (val) {
+                        vals[val-1]++;
                     }
                 }
             }
@@ -327,11 +337,10 @@ void squares(Board &board) {
             for (int x = i * 3 + 1; x <= i * 3 + 3; ++x) {
                 for (int y = j * 3 + 1; y <= j * 3 + 3; ++y) {
                     Board::Cell &c = board(x, y);
-                    if (!c.value) {
+                    if (!c.rawValue()) {
                         for (int k = 1; k <= 9; ++k) {
                             if (vals[k-1]) {
-                                // c.marks[k].wrong = true;
-                                c.marks[k].enabled = false;
+                                setMarkWrong(c, k);
                             }
                         }
                     }

@@ -88,6 +88,8 @@ class Board {
              * Toggles the specified mark's state between enabled/disabled
              */
             Flags &operator[](const int &i);
+            bool operator==(const Marks &other) const;
+            bool operator!=(const Marks &other) const;
         };
         /**
          * Initialises the cell empty
@@ -98,10 +100,10 @@ class Board {
          * Compares the value member
          * If value == 0, or cell is not enabled, it cannot be a match
          */
-        bool operator==(const int &other);
-        bool operator==(const Cell &other);
-        bool operator!=(const int &other);
-        bool operator!=(const Cell &other);
+        bool operator==(const int &other) const;
+        bool operator==(const Cell &other) const;
+        bool operator!=(const int &other) const;
+        bool operator!=(const Cell &other) const;
         /**
          * Disable all marks
          */
@@ -111,6 +113,12 @@ class Board {
          */
         void setMarks();
         /**
+         * If value != 0, return value
+         * else if only 1 mark is enabled, return that mark
+         * else return 0;
+         */
+        unsigned char rawValue();
+        /**
          * Sets the value of the cell
          * If 0 is passed, the cell is reset
          */
@@ -119,6 +127,7 @@ class Board {
         unsigned char wrong:1;
         Marks marks;
     };
+    typedef std::array<std::array<Cell, 9>, 9> RawBoard;
     /**
      * Basic constructor
      * Selected cell is set as disabled (any out of bounds value)
@@ -177,6 +186,7 @@ class Board {
 
     void transpose() { transposeState = !transposeState; }
     bool getTransposeState() const { return transposeState; }
+    RawBoard getRawBoard() const { return raw_board; }
 
  private:
     Mode current_mode = Vanilla;
@@ -187,8 +197,7 @@ class Board {
     /**
      * Never access this directly
      */
-    typedef std::array<std::array<Cell, 9>, 9> RawBoard;
-    RawBoard cell_rows;
+    RawBoard raw_board;
     /**
      * The overlay for rendering the board
      */
