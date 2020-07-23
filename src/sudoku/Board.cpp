@@ -18,6 +18,9 @@ Board::Cell &Board::operator()(const int &x, const int &y) {
     }
     return transposeState ? cell_rows[y-1][x-1] : cell_rows[x-1][y-1];
 }
+Board::Cell &Board::operator()(const Pos &xy) {
+    return (*this)(xy.x, xy.y);
+}
 
 std::shared_ptr<BoardOverlay> Board::getOverlay(const unsigned int &dims) {
     if (!overlay)
@@ -222,7 +225,7 @@ bool Board::Cell::operator!=(const int &other) {
 bool Board::Cell::operator!=(const Cell &other) {
     return  !(*this == other);
 }
-Board::Cell &Board::Cell::operator=(const int &i) {
+Board::Cell &Board::Cell::operator=(const unsigned int &i) {
     if (i < 0 || i > 9) {
         THROW OutOfBounds("Value of %d is out of bounds, valid indexes are in the range [0-9].\n", i);
     }

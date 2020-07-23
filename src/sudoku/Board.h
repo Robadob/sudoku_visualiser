@@ -114,7 +114,7 @@ class Board {
          * Sets the value of the cell
          * If 0 is passed, the cell is reset
          */
-        Cell &operator=(const int &i);
+        Cell &operator=(const unsigned int &i);
         unsigned char value:4;
         unsigned char wrong:1;
         Marks marks;
@@ -128,6 +128,7 @@ class Board {
      * Access a cell at the specified position of the board
      */
     Cell &operator()(const int &x, const int &y);
+    Cell &operator()(const Pos &xy);
     /**
      * Creates the overlay if it doesn't already exist, and returns it's shared_ptr
      * @param dims If creating the overlay, it will be given these dimensions
