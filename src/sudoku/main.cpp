@@ -15,7 +15,7 @@ int main(int argc, char **argv) {
         for (int x = 1; x <= 9; ++x) {
             for (int y = 1; y <= 9; ++y) {
                 for (int i = 1; i <= 9; ++i)
-                    (*sudoku_board)[x][y].marks[i].enabled = true;
+                    (*sudoku_board)(x, y).marks[i].enabled = true;
             }
         }
         sudoku_board->getOverlay()->queueRedrawAllCells();

@@ -2,16 +2,21 @@
 
 #include <SDL_keycode.h>
 
+
+#include "ConstraintHints.h"
 #include "ConstraintValidator.h"
 #include "util/VisException.h"
 
 Board::Board() { }
 
-Board::CellRow &Board::operator[](const int &x) {
+Board::Cell &Board::operator()(const int &x, const int &y) {
     if (x < 1 || x > 9) {
         THROW OutOfBounds("Cell x-index [%d] is out of bounds, valid indexes are in the range [1-9].\n", x);
     }
-    return cell_rows[x-1];
+    if (y < 1 || y > 9) {
+        THROW OutOfBounds("Cell y-index [%d] is out of bounds, valid indexes are in the range [1-9].\n", y);
+    }
+    return transposeState ? cell_rows[y-1][x-1] : cell_rows[x-1][y-1];
 }
 
 std::shared_ptr<BoardOverlay> Board::getOverlay(const unsigned int &dims) {
@@ -69,6 +74,8 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
             // Tell to validate, this forces redraw all
             validate();
         }
+    } else if (keycode == SDLK_h && !ctrl && !shift) {
+        hint();
     } else {
         // If we have a selection
         if (selected_cell.x > 0 && selected_cell.x <= 9 &&
@@ -78,7 +85,7 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
                 return;
             // Clear redo stack as soon as user makes a change
             while (!redoStack.empty()) { redoStack.pop(); }
-            Cell &c = (*this)[selected_cell.x][selected_cell.y];
+            Cell &c = (*this)(selected_cell.x, selected_cell.y);
             // Add the selected cell to the undo stack
             undoStack.push(cell_rows);
             if (shift && !ctrl) {
@@ -143,23 +150,47 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
     }
 }
 bool Board::validate() {
-    bool result;
     clearWrong();
     if (current_mode == None) {
-        result =  true;
+        lastValidateResult =  true;
     } else if (current_mode == Vanilla) {
-        result = ConstraintValidator::vanilla(*this);
+        lastValidateResult = ConstraintValidator::vanilla(*this);
     } else {
         THROW ValidationError("Unexpected Mode\n");
     }
     if (overlay)
         overlay->queueRedrawAllCells();
-    return result;
+    return lastValidateResult;
+}
+void Board::hint() {
+    // Cannot provide a hint, if board contains errors
+    if (lastValidateResult) {
+        // Add the selected cell to the undo stack
+        undoStack.push(cell_rows);
+        // Enable all marks
+        // We do this first, so that subsequent method calls can mark wrong any which are not possible
+        for (int x = 1; x <= 9; ++x) {
+            for (int y = 1; y <= 9; ++y) {
+                (*this)(x, y).setMarks();
+            }
+        }
+        // Call corresponding hint method
+        if (current_mode == Vanilla) {
+            ConstraintHints::vanilla(*this);
+        } else {
+            // We didn't do anything, so undo the mark changes and return
+            cell_rows = undoStack.top();
+            undoStack.pop();
+            return;
+        }
+        if (overlay)
+            overlay->queueRedrawAllCells();
+    }
 }
 void Board::clearWrong() {
     for (int x = 1; x<= 9; ++x) {
         for (int y = 1; y<= 9; ++y) {
-            (*this)[x][y].wrong = false;
+            (*this)(x, y).wrong = false;
         }
     }
 }
@@ -199,16 +230,18 @@ Board::Cell &Board::Cell::operator=(const int &i) {
     wrong = false;
     return *this;
 }
-Board::Cell &Board::CellRow::operator[](const int &y) {
-    if (y < 1 || y > 9) {
-        THROW OutOfBounds("Cell y-index [%d] is out of bounds, valid indexes are in the range [1-9].\n", y);
-    }
-    return cols[y-1];
-}
 void Board::Cell::clearMarks() {
     // Kill all marks
     for (int f = 1; f <= 9; ++f) {
         marks[f].enabled = false;
         marks[f].wrong = false;
+    }
+}
+void Board::Cell::setMarks() {
+    if (!value) {
+        for (int f = 1; f <= 9; ++f) {
+            marks[f].enabled = true;
+            marks[f].wrong = false;
+        }
     }
 }

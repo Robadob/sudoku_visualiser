@@ -186,7 +186,7 @@ void BoardOverlay::update() {
             const int &x = _c.first;
             const int &y = _c.second;
             // Grab cell
-            Board::Cell &c = board[x][y];
+            Board::Cell &c = board(x, y);
             // Clear texture
             tex->clearCell(x, y);
             // Apply glyphs to cell

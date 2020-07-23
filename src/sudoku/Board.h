@@ -107,6 +107,10 @@ class Board {
          */
         void clearMarks();
         /**
+         * Set marks to enabled=true, wrong=false, if the cell's value is 0
+         */
+        void setMarks();
+        /**
          * Sets the value of the cell
          * If 0 is passed, the cell is reset
          */
@@ -116,18 +120,6 @@ class Board {
         Marks marks;
     };
     /**
-     * Represents a row of 9 cells
-     * @note This only exists so we can hijack 2D array operators, to shift 1-indexes to 0-indexes
-     */
-    struct CellRow {
-        /**
-         * Returns the corresponding cell
-         * 1-indexed
-         */
-        Cell &operator[](const int &y);
-        std::array<Cell, 9> cols;
-    };
-    /**
      * Basic constructor
      * Selected cell is set as disabled (any out of bounds value)
      */
@@ -135,7 +127,7 @@ class Board {
     /**
      * Access a cell at the specified position of the board
      */
-    CellRow &operator[](const int &x);
+    Cell &operator()(const int &x, const int &y);
     /**
      * Creates the overlay if it doesn't already exist, and returns it's shared_ptr
      * @param dims If creating the overlay, it will be given these dimensions
@@ -172,11 +164,18 @@ class Board {
      */
     bool validate();
     /**
+     * Update marks for all unset cells to hint at what is possible/impossible
+     */
+    void hint();
+    /**
      * Clears the wrong flag in all cells
      */
     void clearWrong();
     Mode getMode() const  { return current_mode; }
     void setMode(const Mode &mode);
+
+    void transpose() { transposeState = !transposeState; }
+    bool getTransposeState() const { return transposeState; }
 
  private:
     Mode current_mode = Vanilla;
@@ -187,13 +186,21 @@ class Board {
     /**
      * Never access this directly
      */
-    typedef std::array<CellRow, 9> RawBoard;
+    typedef std::array<std::array<Cell, 9>, 9> RawBoard;
     RawBoard cell_rows;
     /**
      * The overlay for rendering the board
      */
     std::shared_ptr<BoardOverlay> overlay = nullptr;
-
+    /**
+     * Last result from validate()
+     * True means no detected failures
+     */
+    bool lastValidateResult = true;
+    /**
+     * If set true, the array accesses are swapped
+     */
+    bool transposeState = false;
     std::stack<RawBoard> undoStack;
     std::stack<RawBoard> redoStack;
 };

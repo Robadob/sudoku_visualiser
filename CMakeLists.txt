@@ -202,6 +202,8 @@ SET(VISUALISER_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/BoardOverlay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/ConstraintValidator.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/ConstraintValidator.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/ConstraintHints.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/ConstraintHints.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/sudoku/main.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Visualiser.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/util/VisException.h
