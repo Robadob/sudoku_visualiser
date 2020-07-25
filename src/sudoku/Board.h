@@ -178,6 +178,10 @@ class Board {
      */
     void hint();
     /**
+     * Set all cells empty
+     */
+    void clear();
+    /**
      * Clears the wrong flag in all cells
      */
     void clearWrong();

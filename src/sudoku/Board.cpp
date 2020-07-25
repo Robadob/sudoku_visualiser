@@ -79,6 +79,8 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
         }
     } else if (keycode == SDLK_h && !ctrl && !shift) {
         hint();
+    } else if (keycode == SDLK_c && !ctrl && !shift) {
+        clear();
     } else {
         // If we have a selection
         if (selected_cell.x > 0 && selected_cell.x <= 9 &&
@@ -189,6 +191,16 @@ void Board::hint() {
         if (overlay)
             overlay->queueRedrawAllCells();
     }
+}
+void Board::clear() {
+    for (int x = 1; x <= 9; ++x) {
+        for (int y = 1; y <= 9; ++y) {
+            (*this)(x, y) = 0;
+            (*this)(x, y).clearMarks();
+        }
+    }
+    if (overlay)
+        overlay->queueRedrawAllCells();
 }
 void Board::clearWrong() {
     for (int x = 1; x<= 9; ++x) {
