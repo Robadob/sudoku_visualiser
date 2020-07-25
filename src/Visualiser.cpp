@@ -1,4 +1,7 @@
 #include "Visualiser.h"
+
+#include <thread>
+
 #include "util/cuda.h"
 #include "util/fonts.h"
 #include "util/MouseButtonState.h"
@@ -16,6 +19,7 @@
 #define DELTA_ROLL 0.01f
 #define ONE_SECOND_MS 1000
 #define VSYNC 1
+#define MAX_FRAMERATE 60
 
 #define DEFAULT_WINDOW_WIDTH 1280
 #define DEFAULT_WINDOW_HEIGHT 720
@@ -123,6 +127,7 @@ void Visualiser::run() {
             SDL_StartTextInput();
             this->continueRender = true;
             while (this->continueRender) {
+                const auto frameStart = std::chrono::high_resolution_clock::now();
                 //  Update the fps in the window title
                 this->updateFPS();
                 // Process notification removal
@@ -146,6 +151,26 @@ void Visualiser::run() {
                 if (this->sudoku_board->hasOverlay())
                     this->sudoku_board->getOverlay()->update();
                 this->render();
+                //  update the screen
+                SDL_GL_SwapWindow(window);
+#ifdef MAX_FRAMERATE
+                {
+                    // Enforce framerate cap
+                    // (This prevents the possibility of driver vsync causing empty spinning till vsync tick, hence reduces processor usage)
+                    // This algorithm is the best compromise to work alongside vsync (on my personal machine), will run slightly fast if vsync disabled
+                    // Likely to perform differently with non-windows OS, or non-nvidia GPU
+                    const auto frameEnd = std::chrono::high_resolution_clock::now();
+                    const auto frameTime = std::chrono::duration<double, std::milli>(frameEnd - frameStart);
+                    const double FPS_TIME = static_cast<double>(ONE_SECOND_MS)/(MAX_FRAMERATE);
+                    if (frameTime.count() < FPS_TIME - 1) {
+                        auto delay = std::chrono::duration<double, std::milli>(FPS_TIME - 1) - frameTime;
+                        std::this_thread::sleep_for(delay);
+                    } else if (frameTime.count() > FPS_TIME) {
+                        auto delay = std::chrono::duration<double, std::milli>(2 * FPS_TIME - 1) - frameTime;
+                        std::this_thread::sleep_for(delay);
+                    }
+                }
+#endif
             }
             SDL_StopTextInput();
             // Release mouse lock
@@ -258,9 +283,6 @@ void Visualiser::render() {
     this->hud->render();
 
     GL_CHECK();
-
-    //  update the screen
-    SDL_GL_SwapWindow(window);
 }
 bool Visualiser::isRunning() const {
     return continueRender;
