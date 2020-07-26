@@ -228,7 +228,7 @@ bool Board::validate() {
         overlay->queueRedrawAllCells();
     return lastValidateResult;
 }
-void Board::hint() {
+void Board::hint(const bool &skipChaining) {
     // Cannot provide a hint, if board contains errors
     if (lastValidateResult) {
         // Add the selected cell to the undo stack
@@ -242,7 +242,7 @@ void Board::hint() {
         }
         // Call corresponding hint method
         if (current_mode == Vanilla) {
-            ConstraintHints::vanilla(*this);
+            ConstraintHints::vanilla(*this, skipChaining);
         } else {
             // We didn't do anything, so undo the mark changes and return
             raw_board = undoStack.top();

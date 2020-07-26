@@ -341,9 +341,62 @@ void hiddenTriples(Board &board) {
         }
     }
 }
+void chain(Board &board) {
+    // For all cells
+    for (int x = 1; x <= 9; ++x) {
+        for (int y = 1; y <= 9; ++y) {
+            Board::Cell &c = board(x, y);
+            if (!c.value) {
+                // Count marks
+                std::list<unsigned int> marks;
+                for (unsigned int k = 1; k <= 9; ++k) {
+                    if (c.marks.flags[k-1].enabled && !c.marks.flags[k-1].wrong) {
+                        marks.push_back(k);
+                    }
+                }
+                // If only 2 marks
+                if (marks.size() == 2) {
+                    auto it = marks.begin();
+                    unsigned int mark1 = *it;
+                    unsigned int mark2 = *(++it);
+                    // Fork the board with each mark set, and solve it with each of these marks set
+                    Board board1(board);
+                    Board board2(board);
+                    board1(x, y) = mark1;
+                    board2(x, y) = mark2;
+                    board1.hint(true);
+                    board2.hint(true);
+                    // Review all changed marks in both boards.
+                    for (int _x = 1; _x <= 9; ++_x) {
+                        for (int _y = 1; _y <= 9; ++_y) {
+                            Board::Cell &c = board(_x, _y);
+                            Board::Cell &c1 = board1(_x, _y);
+                            Board::Cell &c2 = board2(_x, _y);
+                            if (!c.value) {
+                                std::list<unsigned int> missing_marks;
+                                for (unsigned int k = 1; k <= 9; ++k) {
+                                    const bool mark_set = c.marks.flags[k-1].enabled && !c.marks.flags[k-1].wrong;
+                                    const bool mark_set1 = c1.marks.flags[k-1].enabled && !c1.marks.flags[k-1].wrong;
+                                    const bool mark_set2 = c2.marks.flags[k-1].enabled && !c2.marks.flags[k-1].wrong;
+                                    if (mark_set && !mark_set1 && !mark_set2) {
+                                        missing_marks.push_back(k);
+                                    }
+                                }
+                                // We can set any marks in missing_marks as wrong
+                                for (const auto &mm : missing_marks) {
+                                    setMarkWrong(c, mm);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
 }  // namespace
 
-void vanilla(Board &board) {
+void vanilla(Board &board, const bool &skip_chaining) {
     Board::RawBoard prev_raw_board = {};
     do {
         prev_raw_board = board.getRawBoard();
@@ -366,6 +419,13 @@ void vanilla(Board &board) {
         hiddenDoubles(board);
         // Same pattern as hiddenSingles(), hiddenDoubles() but for triples
         hiddenTriples(board);
+        if (!skip_chaining) {
+            // Chaining
+            // For every cell with only 2 marks, fork the board with the two possibilities
+            // Run hint with chaining disabled
+            // Only retain marks which appear in the union of the two boards
+            chain(board);
+        }
     } while (prev_raw_board != board.getRawBoard());
 }
 void columns(Board &board) {

@@ -183,7 +183,7 @@ class Board {
     /**
      * Update marks for all unset cells to hint at what is possible/impossible
      */
-    void hint();
+    void hint(const bool &skipChaining = false);
     /**
      * Set all cells empty
      */

@@ -12,7 +12,7 @@ namespace ConstraintHints {
      * Vanilla sudoku rules
      * Combines columns AND rows AND squares
      */
-    void vanilla(Board &board);
+    void vanilla(Board &board, const bool &skip_chaining = false);
     void columns(Board &board);
     void rows(Board &board);
     void squares(Board &board);
