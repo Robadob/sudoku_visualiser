@@ -292,6 +292,15 @@ SET(VISUALISER_ALL
     ${VISUALISER_SRC}
 )
 
+if(WIN32)
+  # configure a rc file to set application icon
+  set (APPLICATION_ICON_PATH ${CMAKE_CURRENT_SOURCE_DIR}/resources/sudoku.ico)
+  configure_file(
+    ${CMAKE_CURRENT_SOURCE_DIR}/resources/application_icon.rc.in
+    application_icon.rc
+    @ONLY)
+  SET(VISUALISER_ALL ${VISUALISER_ALL} application_icon.rc)
+endif()
 
 # Use C++14 standard - std::make_unique is 14 not 11
 # Specify using C++14 standard
@@ -410,7 +419,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/include PREFIX headers FILES ${T_S
 #./.cpp
 set(T_SRC "${VISUALISER_ALL}")
 list(FILTER T_SRC EXCLUDE REGEX "^${CMAKE_CURRENT_SOURCE_DIR}/src")
-list(FILTER T_SRC EXCLUDE REGEX ".*\.(h|hpp|cuh)$")
+list(FILTER T_SRC EXCLUDE REGEX ".*\.(h|hpp|cuh|rc)$")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/include PREFIX src FILES ${T_SRC})
 
 # Stuff borrowed from FGPU2/common.cmake
