@@ -9,6 +9,8 @@
 
 #include "sudoku/BoardOverlay.h"
 
+class Visualiser;
+
 /**
  * Which collection of validation rules to apply
  * @note In future this could be converted to a bitmask for individual rules
@@ -132,7 +134,12 @@ class Board {
      * Basic constructor
      * Selected cell is set as disabled (any out of bounds value)
      */
-    Board();
+    explicit Board(Visualiser *vis = nullptr);
+    /**
+     * Copy constructor
+     * Only copies raw board and mode, default init everything else
+     */
+    Board(const Board &other);
     /**
      * Access a cell at the specified position of the board
      */
@@ -191,6 +198,16 @@ class Board {
     void transpose() { transposeState = !transposeState; }
     bool getTransposeState() const { return transposeState; }
     RawBoard getRawBoard() const { return raw_board; }
+    /**
+     * Saves raw_board to "saves/<slot>.bsdk
+     * @return True if successful
+     */
+    bool save(const std::string &slot) const;
+    /**
+     * Loads raw_board from "saves/<slot>.bsdk
+     * @return True if successful
+     */
+    bool load(const std::string &slot);
 
  private:
     Mode current_mode = Vanilla;
@@ -217,6 +234,10 @@ class Board {
     bool transposeState = false;
     std::stack<RawBoard> undoStack;
     std::stack<RawBoard> redoStack;
+    /**
+     * Used for sending notifications to vis if available
+     */
+    Visualiser *visualiser = nullptr;
 };
 
 #endif  // SRC_SUDOKU_BOARD_H_

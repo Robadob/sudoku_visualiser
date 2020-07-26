@@ -33,7 +33,7 @@ Visualiser::Visualiser()
     , windowTitle("Sudoku Visualiser")
     , windowDims(DEFAULT_WINDOW_WIDTH, DEFAULT_WINDOW_HEIGHT)
     , fpsDisplay(nullptr)
-    , sudoku_board(std::make_shared<Board>()) {
+    , sudoku_board(std::make_shared<Board>(this)) {
     this->isInitialised = this->init();
     BackBuffer::setClear(true, glm::vec3(0.8f));
     {
@@ -464,9 +464,9 @@ void Visualiser::handleKeypress(SDL_Keycode keycode, const Uint8 *keyboard_state
     case SDLK_DOWN:  sudoku_board->shiftSelectedCell(+0, +1); break;
     default:
         if (this->sudoku_board) {
-            bool shift_state = keyboard_state[SDL_SCANCODE_LSHIFT] || keyboard_state[SDL_SCANCODE_RSHIFT];
-            bool ctrl_state = keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL];
-            bool alt_state = keyboard_state[SDL_SCANCODE_LALT] || keyboard_state[SDL_SCANCODE_RALT];
+            const bool shift_state = keyboard_state[SDL_SCANCODE_LSHIFT] || keyboard_state[SDL_SCANCODE_RSHIFT];
+            const bool ctrl_state = keyboard_state[SDL_SCANCODE_LCTRL] || keyboard_state[SDL_SCANCODE_RCTRL];
+            const bool alt_state = keyboard_state[SDL_SCANCODE_LALT] || keyboard_state[SDL_SCANCODE_RALT];
             // Convert keycode to number [0-9] (0 and backspace, acts as clear)
             // Set marks ctrl/shift + number [0-9]
             // Ctrl z/y, edit undo/redo

@@ -19,6 +19,7 @@ docs/
 bin/
 obj/
 build*/
+saves/
 
 # Editor configuration files/directories
 .vscode

@@ -1,13 +1,45 @@
 #include "Board.h"
 
+#include <fstream>
+
 #include <SDL_keycode.h>
 
 
 #include "ConstraintHints.h"
 #include "ConstraintValidator.h"
 #include "util/VisException.h"
+#include "Visualiser.h"
 
-Board::Board() { }
+// If earlier than VS 2019
+#if defined(_MSC_VER) && _MSC_VER < 1920
+#include <filesystem>
+using std::tr2::sys::exists;
+using std::tr2::sys::path;
+using std::tr2::sys::create_directory;
+#else
+// VS2019 requires this macro, as building pre c++17 cant use std::filesystem
+#define _SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING
+#include <experimental/filesystem>
+using std::experimental::filesystem::v1::exists;
+using std::experimental::filesystem::v1::path;
+using std::experimental::filesystem::v1::create_directory;
+#endif
+
+Board::Board(Visualiser *vis)
+    : selected_cell(0, 0)
+    , visualiser(vis) { }
+Board::Board(const Board &other)
+    : current_mode(other.current_mode)
+    , raw_board(other.raw_board)
+    , transposeState(other.transposeState)  {
+    // Don't copy:
+    //   selected_cell
+    //   overlay
+    //   lastValidateResult
+    //   redoStack
+    //   redoStack
+    //   visualiser
+}
 
 Board::Cell &Board::operator()(const int &x, const int &y) {
     if (x < 1 || x > 9) {
@@ -23,8 +55,10 @@ Board::Cell &Board::operator()(const Pos &xy) {
 }
 
 std::shared_ptr<BoardOverlay> Board::getOverlay(const unsigned int &dims) {
-    if (!overlay)
+    if (!overlay) {
         overlay = std::make_shared<BoardOverlay>(*this, dims);
+        overlay->selectCell(selected_cell.x, selected_cell.y);
+    }
     return overlay;
 }
 void Board::killOverlay() {
@@ -81,11 +115,38 @@ void Board::handleKeyPress(const SDL_Keycode &keycode, bool shift, bool ctrl, bo
         hint();
     } else if (keycode == SDLK_c && !ctrl && !shift) {
         clear();
+    } else if (alt && !ctrl) {
+        const int number = keycode - SDLK_0;
+        if (number < 0 || number > 9)
+            return;
+        if (shift) {
+            // Load board
+            if (load(std::to_string(number))) {
+                // Success, validate board to redraw
+                validate();
+                if (visualiser)
+                    visualiser->sendNotification("Loaded Board From Slot " + std::to_string(number) + "!");
+            } else {
+                if (visualiser)
+                    visualiser->sendNotification("Loading From Slot " + std::to_string(number) + " Failed.");
+            }
+        } else {
+            // Save board (and add old board to undo stack)
+            undoStack.push(raw_board);
+            if (save(std::to_string(number))) {
+                if (visualiser)
+                    visualiser->sendNotification("Saved Board To Slot " + std::to_string(number) + "!");
+            } else {
+                undoStack.pop();
+                if (visualiser)
+                    visualiser->sendNotification("Saving To Slot " + std::to_string(number) + " Failed.");
+            }
+        }
     } else {
         // If we have a selection
         if (selected_cell.x > 0 && selected_cell.x <= 9 &&
             selected_cell.y > 0 && selected_cell.y <= 9) {
-            int number = keycode == SDLK_BACKSPACE ? 0 : keycode- SDLK_0;
+            int number = keycode == SDLK_BACKSPACE ? 0 : keycode - SDLK_0;
             if (number < 0 || number > 9)
                 return;
             // Clear redo stack as soon as user makes a change
@@ -208,6 +269,41 @@ void Board::clearWrong() {
             (*this)(x, y).wrong = false;
         }
     }
+}
+
+bool Board::save(const std::string &slot) const {
+    // Check saves dir exists, if not create
+    path saveDir = path("./saves/");
+    if (!::exists(path(saveDir))) {
+        create_directory(saveDir);
+    }
+    // Output rawboard
+    saveDir += slot + ".bsdk";
+    std::ofstream outfile(saveDir.relative_path().c_str(), std::ofstream::out | std::ofstream::binary | std::ofstream::trunc);
+    if (outfile.is_open()) {
+        // For each row, output the array's data
+        for (const auto &row : raw_board) {
+            outfile.write(reinterpret_cast<const char *>(row.data()), row.size() * sizeof(Board::Cell));
+        }
+        outfile.close();
+        return true;
+    }
+    return false;
+}
+bool Board::load(const std::string &slot) {
+    const path filepath = path("./saves/"+slot + ".bsdk");
+    if (::exists(filepath)) {
+        std::ifstream infile(filepath.relative_path().c_str(), std::ifstream::in | std::ifstream::binary);
+        if (infile.is_open()) {
+            // For each row, output the array's data
+            for (auto &row : raw_board) {
+                infile.read(reinterpret_cast<char *>(row.data()), row.size() * sizeof(Board::Cell));
+            }
+            infile.close();
+            return true;
+        }
+    }
+    return false;
 }
 
 /**
