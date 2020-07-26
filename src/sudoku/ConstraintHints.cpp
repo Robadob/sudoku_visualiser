@@ -369,7 +369,7 @@ void chain(Board &board) {
             if (!c.value) {
                 // Count marks
                 std::list<unsigned int> marks;
-                for (unsigned int k = 1; k <= 9; ++k) {
+                for (int k = 1; k <= 9; ++k) {
                     if (c.marks[k].enabled && !c.marks[k].wrong) {
                         marks.push_back(k);
                     }
@@ -386,13 +386,14 @@ void chain(Board &board) {
                     board2(x, y) = mark2;
                     board1.hint(true);
                     board2.hint(true);
+                    bool chainSuccess = false;
                     // Review all changed marks in both boards.
                     for (int _x = 1; _x <= 9; ++_x) {
                         for (int _y = 1; _y <= 9; ++_y) {
                             Board::Cell &c0 = board(_x, _y);
                             Board::Cell &c1 = board1(_x, _y);
                             Board::Cell &c2 = board2(_x, _y);
-                            if (!c.value) {
+                            if (!c0.value) {
                                 std::list<unsigned int> missing_marks;
                                 for (unsigned int k = 1; k <= 9; ++k) {
                                     const bool mark_set0 = c0.marks[k].enabled && !c0.marks[k].wrong;
