@@ -361,7 +361,7 @@ void hiddenTriples(Board &board) {
         }
     }
 }
-void chain(Board &board) {
+void yWing(Board &board) {
     // For all cells
     for (int x = 1; x <= 9; ++x) {
         for (int y = 1; y <= 9; ++y) {
@@ -395,13 +395,16 @@ void chain(Board &board) {
                             Board::Cell &c2 = board2(_x, _y);
                             if (!c0.value) {
                                 std::list<unsigned int> missing_marks;
-                                for (unsigned int k = 1; k <= 9; ++k) {
+                                for (int k = 1; k <= 9; ++k) {
                                     const bool mark_set0 = c0.marks[k].enabled && !c0.marks[k].wrong;
                                     const bool mark_set1 = c1.marks[k].enabled && !c1.marks[k].wrong;
                                     const bool mark_set2 = c2.marks[k].enabled && !c2.marks[k].wrong;
                                     if (mark_set0 && !mark_set1 && !mark_set2) {
                                         missing_marks.push_back(k);
                                     }
+                                }
+                                if (!missing_marks.empty()) {
+                                    chainSuccess = true;
                                 }
                                 // We can set any marks in missing_marks as wrong
                                 for (const auto &mm : missing_marks) {
@@ -410,10 +413,80 @@ void chain(Board &board) {
                             }
                         }
                     }
+                    if (chainSuccess) {
+                        return;  // Only do 1 useful chain before returning to normal rules
+                    }
                 }
             }
         }
     }
+}
+void xWingColumn(Board &board) {
+    // For all columns
+    for (int x = 1; x <= 9; ++x) {
+        // Count mark frequencies
+        std::array<std::list<Board::Pos>, 9> marks_occurences = {};
+        for (int y = 1; y <= 9; ++y) {
+            Board::Cell &c = board(x, y);
+            if (!c.value) {
+                for (int k = 1; k <= 9; ++k) {
+                    if (c.marks[k].enabled && !c.marks[k].wrong) {
+                        marks_occurences[k - 1].push_back({x, y});
+                    }
+                }
+            }
+        }
+        for (int k = 1; k <= 9; ++k) {
+            // If only twice
+            if (marks_occurences[k - 1].size() == 2) {
+                auto it = marks_occurences[k - 1].begin();
+                Board::Pos pos1 = *it;
+                Board::Pos pos2 = *(++it);
+                // Fork the board with each mark set, and solve it with each of these marks set
+                Board board1(board);
+                Board board2(board);
+                board1(pos1) = k;
+                board2(pos2) = k;
+                board1.hint(true);
+                board2.hint(true);
+                bool chainSuccess = false;
+                // Review all changed marks in both boards.
+                for (int _x = 1; _x <= 9; ++_x) {
+                    for (int _y = 1; _y <= 9; ++_y) {
+                        Board::Cell &c0 = board(_x, _y);
+                        Board::Cell &c1 = board1(_x, _y);
+                        Board::Cell &c2 = board2(_x, _y);
+                        if (!c0.value) {
+                            std::list<unsigned int> missing_marks;
+                            for (int k = 1; k <= 9; ++k) {
+                                const bool mark_set0 = c0.marks[k].enabled && !c0.marks[k].wrong;
+                                const bool mark_set1 = c1.marks[k].enabled && !c1.marks[k].wrong;
+                                const bool mark_set2 = c2.marks[k].enabled && !c2.marks[k].wrong;
+                                if (mark_set0 && !mark_set1 && !mark_set2) {
+                                    missing_marks.push_back(k);
+                                }
+                            }
+                            if (!missing_marks.empty()) {
+                                chainSuccess = true;
+                            }
+                            // We can set any marks in missing_marks as wrong
+                            for (const auto &mm : missing_marks) {
+                                setMarkWrong(c0, mm);
+                            }
+                        }
+                    }
+                }
+                if (chainSuccess) {
+                    return;  // Only do 1 useful chain before returning to normal rules
+                }
+            }
+        }
+    }
+}
+void xWingRow(Board &board) {
+    board.transpose();
+    xWingColumn(board);
+    board.transpose();
 }
 }  // namespace
 
@@ -421,34 +494,46 @@ void vanilla(Board &board, const bool &skip_chaining) {
     Board::RawBoard prev_raw_board = {};
     do {
         do {
-            prev_raw_board = board.getRawBoard();
-            // First order hints, is the rule broken directly
-            columns(board);
-            rows(board);
-            squares(board);
-            // Pointing pair columns/rows
-            // Second order hints, does the impact of a column/row rule on a square (3x3 cell collection)
-            // Implicitly prevent a value in a related square
-            columns2(board);
-            rows2(board);
-            // Naked doubles/triples
-            // Double: If a mark only appears in 2 cells, with only the same 1 mark, that mark can be removed from other cells in the square
-            // Triple: If a mark only appears in 3 cells, with only the same 2 marks, those 2 marks can be removed from other cells in the square
-            nakedDoubles(board);
-            nakedTriples(board);
-            // If a mark only appears once in a square, it is the correct value, so remove other marks
-            hiddenSingles(board);
-            // If two marks only appear twice in a square, and they appear in the same cells, remove other marks from these cells
-            hiddenDoubles(board);
-            // Same pattern as hiddenSingles(), hiddenDoubles() but for triples
-            hiddenTriples(board);
+            do {
+                do {
+                    prev_raw_board = board.getRawBoard();
+                    // First order hints, is the rule broken directly
+                    columns(board);
+                    rows(board);
+                    squares(board);
+                    // Pointing pair columns/rows
+                    // Second order hints, does the impact of a column/row rule on a square (3x3 cell collection)
+                    // Implicitly prevent a value in a related square
+                    columns2(board);
+                    rows2(board);
+                    // Naked doubles/triples
+                    // Double: If a mark only appears in 2 cells, with only the same 1 mark, that mark can be removed from other cells in the square
+                    // Triple: If a mark only appears in 3 cells, with only the same 2 marks, those 2 marks can be removed from other cells in the square
+                    nakedDoubles(board);
+                    nakedTriples(board);
+                    // If a mark only appears once in a square, it is the correct value, so remove other marks
+                    hiddenSingles(board);
+                    // If two marks only appear twice in a square, and they appear in the same cells, remove other marks from these cells
+                    hiddenDoubles(board);
+                    // Same pattern as hiddenSingles(), hiddenDoubles() but for triples
+                    hiddenTriples(board);
+                } while (prev_raw_board != board.getRawBoard());
+                if (!skip_chaining) {
+                    // Chaining
+                    // For every cell with only 2 marks, fork the board with the two possibilities
+                    // Run hint with chaining disabled
+                    // Only retain marks which appear in the union of the two boards
+                    yWing(board);
+                }
+            } while (prev_raw_board != board.getRawBoard());
+            if (!skip_chaining) {
+                // For every column where a mark only appears twice
+                xWingColumn(board);
+            }
         } while (prev_raw_board != board.getRawBoard());
         if (!skip_chaining) {
-            // Chaining
-            // For every cell with only 2 marks, fork the board with the two possibilities
-            // Run hint with chaining disabled
-            // Only retain marks which appear in the union of the two boards
-            chain(board);
+            // For every row where a mark only appears twice
+            xWingRow(board);
         }
     } while (prev_raw_board != board.getRawBoard());
 }
