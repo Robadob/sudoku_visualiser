@@ -85,13 +85,15 @@ class Board {
                 unsigned char enabled:1;
                 unsigned char wrong:1;
             };
-            std::array<Flags, 9> flags;
             /**
              * Toggles the specified mark's state between enabled/disabled
              */
             Flags &operator[](const int &i);
             bool operator==(const Marks &other) const;
             bool operator!=(const Marks &other) const;
+
+         private:
+            std::array<Flags, 9> flags = {};
         };
         /**
          * Initialises the cell empty

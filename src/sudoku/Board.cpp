@@ -233,11 +233,13 @@ void Board::hint(const bool &skipChaining) {
     if (lastValidateResult) {
         // Add the selected cell to the undo stack
         undoStack.push(raw_board);
-        // Enable all marks
-        // We do this first, so that subsequent method calls can mark wrong any which are not possible
-        for (int x = 1; x <= 9; ++x) {
-            for (int y = 1; y <= 9; ++y) {
-                (*this)(x, y).setMarks();
+        if (!skipChaining) {
+            // Enable all marks
+            // We do this first, so that subsequent method calls can mark wrong any which are not possible
+            for (int x = 1; x <= 9; ++x) {
+                for (int y = 1; y <= 9; ++y) {
+                    (*this)(x, y).setMarks();
+                }
             }
         }
         // Call corresponding hint method

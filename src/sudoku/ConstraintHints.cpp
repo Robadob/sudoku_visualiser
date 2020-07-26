@@ -100,9 +100,14 @@ void naked_frequency(Board &board, const int &i, const int &j, const std::array<
             }
             // If tc only has frequency marks
             if (tc_marks == frequency) {
-                // Disable those 2 marks in all cells in square
+                // Disable those 2 marks in all other cells in square
                 for (int x = i * 3 + 1; x <= i * 3 + 3; ++x) {
                     for (int y = j * 3 + 1; y <= j * 3 + 3; ++y) {
+                        for (const auto &p : mark_occurrences[k - 1]) {
+                            if (x == p.x && y == p.y) {
+                                goto naked_frequency_skip_disable;
+                            }
+                        }
                         Board::Cell &c = board(x, y);
                         if (!c.value) {
                             for (int _k = 1; _k <= 9; ++_k) {
@@ -111,25 +116,14 @@ void naked_frequency(Board &board, const int &i, const int &j, const std::array<
                                 }
                             }
                         }
-                    }
-                }
-                // Re-enable those 2 marks in the 2 cells from mark_occurrences
-                // and disable all other marks
-                for (const auto &p : mark_occurrences[k - 1]) {
-                    Board::Cell &c = board(p);
-                    for (int _k = 1; _k <= 9; ++_k) {
-                        if (tc.marks[_k].enabled) {
-                            c.marks[_k].enabled = true;
-                        } else {
-                            setMarkWrong(c, _k);
-                        }
+                        {naked_frequency_skip_disable:;}
                     }
                 }
             }
         }
     }
 }
-void nakedDoublesTriples(Board &board) {
+void nakedDoubles(Board &board) {
     // For each square
     for (int i = 0; i < 3; ++i) {
         for (int j = 0; j < 3; ++j) {
@@ -153,6 +147,32 @@ void nakedDoublesTriples(Board &board) {
             // perform the union of marks of all cells it appears in
             // If the union only has frequency marks enabled, purge these marks from all other cells
             naked_frequency(board, i, j, mark_occurrences, 2);
+        }
+    }
+}
+void nakedTriples(Board &board) {
+    // For each square
+    for (int i = 0; i < 3; ++i) {
+        for (int j = 0; j < 3; ++j) {
+            // Detect how many cells each mark appears in
+            std::array<std::list<Board::Pos>, 9> mark_occurrences = {};
+            // For each cell in the square
+            for (int x = i * 3 + 1; x <= i * 3 + 3; ++x) {
+                for (int y = j * 3 + 1; y <= j * 3 + 3; ++y) {
+                    Board::Cell &c = board(x, y);
+                    if (!c.value) {
+                        // Increment the subcolumn counter for any marks that are set
+                        for (int k = 1; k <= 9; ++k) {
+                            if (c.marks[k].enabled && !c.marks[k].wrong) {
+                                mark_occurrences[k - 1].push_back({x, y});
+                            }
+                        }
+                    }
+                }
+            }
+            // If any mark appears frequency times
+            // perform the union of marks of all cells it appears in
+            // If the union only has frequency marks enabled, purge these marks from all other cells
             naked_frequency(board, i, j, mark_occurrences, 3);
         }
     }
@@ -250,7 +270,7 @@ void hiddenDoubles(Board &board) {
                                     Board::Cell &c = board(mm);
                                     if (!c.value) {
                                         // Clear marks in all but k1 and k2
-                                        for (unsigned int k = 1; k <= 9; ++k) {
+                                        for (int k = 1; k <= 9; ++k) {
                                             if (k != k1 && k != k2) {
                                                 setMarkWrong(c, k);
                                             }
@@ -350,7 +370,7 @@ void chain(Board &board) {
                 // Count marks
                 std::list<unsigned int> marks;
                 for (unsigned int k = 1; k <= 9; ++k) {
-                    if (c.marks.flags[k-1].enabled && !c.marks.flags[k-1].wrong) {
+                    if (c.marks[k].enabled && !c.marks[k].wrong) {
                         marks.push_back(k);
                     }
                 }
@@ -369,22 +389,22 @@ void chain(Board &board) {
                     // Review all changed marks in both boards.
                     for (int _x = 1; _x <= 9; ++_x) {
                         for (int _y = 1; _y <= 9; ++_y) {
-                            Board::Cell &c = board(_x, _y);
+                            Board::Cell &c0 = board(_x, _y);
                             Board::Cell &c1 = board1(_x, _y);
                             Board::Cell &c2 = board2(_x, _y);
                             if (!c.value) {
                                 std::list<unsigned int> missing_marks;
                                 for (unsigned int k = 1; k <= 9; ++k) {
-                                    const bool mark_set = c.marks.flags[k-1].enabled && !c.marks.flags[k-1].wrong;
-                                    const bool mark_set1 = c1.marks.flags[k-1].enabled && !c1.marks.flags[k-1].wrong;
-                                    const bool mark_set2 = c2.marks.flags[k-1].enabled && !c2.marks.flags[k-1].wrong;
-                                    if (mark_set && !mark_set1 && !mark_set2) {
+                                    const bool mark_set0 = c0.marks[k].enabled && !c0.marks[k].wrong;
+                                    const bool mark_set1 = c1.marks[k].enabled && !c1.marks[k].wrong;
+                                    const bool mark_set2 = c2.marks[k].enabled && !c2.marks[k].wrong;
+                                    if (mark_set0 && !mark_set1 && !mark_set2) {
                                         missing_marks.push_back(k);
                                     }
                                 }
                                 // We can set any marks in missing_marks as wrong
                                 for (const auto &mm : missing_marks) {
-                                    setMarkWrong(c, mm);
+                                    setMarkWrong(c0, mm);
                                 }
                             }
                         }
@@ -399,26 +419,29 @@ void chain(Board &board) {
 void vanilla(Board &board, const bool &skip_chaining) {
     Board::RawBoard prev_raw_board = {};
     do {
-        prev_raw_board = board.getRawBoard();
-        // First order hints, is the rule broken directly
-        columns(board);
-        rows(board);
-        squares(board);
-        // Pointing pair columns/rows
-        // Second order hints, does the impact of a column/row rule on a square (3x3 cell collection)
-        // Implicitly prevent a value in a related square
-        columns2(board);
-        rows2(board);
-        // Naked doubles/triples
-        // Double: If a mark only appears in 2 cells, with only the same 1 mark, that mark can be removed from other cells in the square
-        // Triple: If a mark only appears in 3 cells, with only the same 2 marks, those 2 marks can be removed from other cells in the square
-        nakedDoublesTriples(board);
-        // If a mark only appears once in a square, it is the correct value, so remove other marks
-        hiddenSingles(board);
-        // If two marks only appear twice in a square, and they appear in the same cells, remove other marks from these cells
-        hiddenDoubles(board);
-        // Same pattern as hiddenSingles(), hiddenDoubles() but for triples
-        hiddenTriples(board);
+        do {
+            prev_raw_board = board.getRawBoard();
+            // First order hints, is the rule broken directly
+            columns(board);
+            rows(board);
+            squares(board);
+            // Pointing pair columns/rows
+            // Second order hints, does the impact of a column/row rule on a square (3x3 cell collection)
+            // Implicitly prevent a value in a related square
+            columns2(board);
+            rows2(board);
+            // Naked doubles/triples
+            // Double: If a mark only appears in 2 cells, with only the same 1 mark, that mark can be removed from other cells in the square
+            // Triple: If a mark only appears in 3 cells, with only the same 2 marks, those 2 marks can be removed from other cells in the square
+            nakedDoubles(board);
+            nakedTriples(board);
+            // If a mark only appears once in a square, it is the correct value, so remove other marks
+            hiddenSingles(board);
+            // If two marks only appear twice in a square, and they appear in the same cells, remove other marks from these cells
+            hiddenDoubles(board);
+            // Same pattern as hiddenSingles(), hiddenDoubles() but for triples
+            hiddenTriples(board);
+        } while (prev_raw_board != board.getRawBoard());
         if (!skip_chaining) {
             // Chaining
             // For every cell with only 2 marks, fork the board with the two possibilities
