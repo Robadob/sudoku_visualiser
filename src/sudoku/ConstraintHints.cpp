@@ -458,12 +458,12 @@ void xWingColumn(Board &board) {
                         Board::Cell &c2 = board2(_x, _y);
                         if (!c0.value) {
                             std::list<unsigned int> missing_marks;
-                            for (int k = 1; k <= 9; ++k) {
-                                const bool mark_set0 = c0.marks[k].enabled && !c0.marks[k].wrong;
-                                const bool mark_set1 = c1.marks[k].enabled && !c1.marks[k].wrong;
-                                const bool mark_set2 = c2.marks[k].enabled && !c2.marks[k].wrong;
+                            for (int _k = 1; _k <= 9; ++_k) {
+                                const bool mark_set0 = c0.marks[_k].enabled && !c0.marks[_k].wrong;
+                                const bool mark_set1 = c1.marks[_k].enabled && !c1.marks[_k].wrong;
+                                const bool mark_set2 = c2.marks[_k].enabled && !c2.marks[_k].wrong;
                                 if (mark_set0 && !mark_set1 && !mark_set2) {
-                                    missing_marks.push_back(k);
+                                    missing_marks.push_back(_k);
                                 }
                             }
                             if (!missing_marks.empty()) {
