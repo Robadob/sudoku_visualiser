@@ -263,6 +263,8 @@ SET(VISUALISER_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Overlay.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Sprite2D.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Text.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/WText.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ToggleList.h
     # .cpp from sdl_exp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/camera/NoClipCamera.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/model/Material.cpp
@@ -289,6 +291,8 @@ SET(VISUALISER_SRC
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Overlay.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Sprite2D.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/Text.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/WText.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/ToggleList.cpp
 )
 SET(VISUALISER_ALL
     ${VISUALISER_INCLUDE}

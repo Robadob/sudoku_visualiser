@@ -1,4 +1,4 @@
-#include "Visualiser.h"
+﻿#include "Visualiser.h"
 
 #include <thread>
 
@@ -43,11 +43,19 @@ Visualiser::Visualiser()
     }
     {
         notificationDisplay = std::make_shared<Text>("", 50, glm::vec3(0), fonts::findFont({"Comic Sans MS"}, fonts::GenericFontFamily::SANS).c_str());
-        notificationDisplay->setVisible(false);
+        notificationDisplay->setVisible(true);
         notificationDisplay->setColor(glm::vec3(0));
         notificationDisplay->setBackgroundColor(glm::vec4(0.8f));
         notificationDisplay->setUseAA(true);
         hud->add(notificationDisplay, HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), INT_MAX);
+    }
+    {  // L"Test✓✓✔✅√☒☑☐✕✗✘✖❌"
+        constraintsOptions = std::make_shared<ToggleList>(std::vector<std::string>({"Test", "Item 2"}));
+        constraintsOptions->setVisible(true);
+        // constraintsOptions->setColor(glm::vec3(0));
+        // constraintsOptions->setBackgroundColor(glm::vec4(0.8f));
+        // constraintsOptions->setUseAA(true);
+        hud->add(constraintsOptions, HUD::AnchorV::North, HUD::AnchorH::East, glm::ivec2(0), 1);
     }
     hud->add(sudoku_board->getOverlay(DEFAULT_WINDOW_HEIGHT), HUD::AnchorV::Center, HUD::AnchorH::Center, glm::ivec2(0), 0);
 }
@@ -383,6 +391,7 @@ void Visualiser::deallocateGLObjects() {
     sudoku_board->killOverlay();
     fpsDisplay.reset();
     notificationDisplay.reset();
+    constraintsOptions.reset();
     this->hud->clear();
 }
 

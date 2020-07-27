@@ -1,5 +1,5 @@
-#ifndef SRC_TEXT_H_
-#define SRC_TEXT_H_
+#ifndef SRC_WTEXT_H_
+#define SRC_WTEXT_H_
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -9,12 +9,13 @@
 
 
 #include "Overlay.h"
+
 /**
  * Class for rendering strings to screen.
  * Windows stores font name-file name mappings in HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\Fonts
  * Those installed fonts are then stored in C:/Windows/Fonts/
  */
-class Text : public Overlay {
+class WText : public Overlay {
     class TextureString : public Texture2D {
      public:
         /**
@@ -62,7 +63,7 @@ class Text : public Overlay {
      * @param fontFile The path to the desired font
      * @param faceIndex The face within the font file to be used (most likely 0)
      */
-    Text(const char *string, unsigned int fontHeight, glm::vec3 color, char const *fontFile = nullptr, unsigned int faceIndex = 0);
+    WText(const wchar_t *string, unsigned int fontHeight, glm::vec3 color, char const *fontFile = nullptr, unsigned int faceIndex = 0);
     /**
      * Creates a text overlay with the provided string
      * @param string The text to be included in the overlay
@@ -71,11 +72,11 @@ class Text : public Overlay {
      * @param fontFile The path to the desired font
      * @param faceIndex The face within the font file to be used (most likely 0)
      */
-    explicit Text(const char *string, unsigned int fontHeight = 20, glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), char const *fontFile = nullptr, unsigned int faceIndex = 0);
+    explicit WText(const wchar_t *string, unsigned int fontHeight = 20, glm::vec4 color = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f), char const *fontFile = nullptr, unsigned int faceIndex = 0);
     /**
      * Deallocates the loaded font and other allocated elements
      */
-    virtual ~Text();
+    virtual ~WText();
     /**
      * Repaints the text to a texture, according to the provided parameters
      */
@@ -170,7 +171,7 @@ class Text : public Overlay {
      * @note This function simply wraps snprintf() for convenience
      * @note This function will always refresh the texture
      */
-    void setString(const char*fmt, ...);
+    void setString(const wchar_t*fmt, ...);
 
  private:
     bool printMono;
@@ -189,10 +190,10 @@ class Text : public Overlay {
     void setStringLen();
     FT_Library  library;
     FT_Face     font;
-    char *string;
+    wchar_t *string;
     unsigned int stringLen;
     unsigned int fontHeight;
     unsigned int wrapDistance;
     std::shared_ptr<TextureString> tex;
 };
-#endif  // SRC_TEXT_H_
+#endif  // SRC_WTEXT_H_

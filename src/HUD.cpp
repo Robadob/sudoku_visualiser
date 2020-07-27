@@ -85,6 +85,7 @@ void HUD::resizeWindow(const glm::uvec2 &_dims) {
         (*it)->resizeWindow(this->dims);
 }
 void HUD::handleMouseDown(const int &x, const int &y, const MouseButtonState& buttons) {
+    const int inverted_y = dims.y - y;
     // Workout which items it intersects
     std::shared_ptr<Item> intersected_item;
     int max_z_index = -INT_MAX;
@@ -92,7 +93,7 @@ void HUD::handleMouseDown(const int &x, const int &y, const MouseButtonState& bu
         if (i->overlay->getClickable()) {
             const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(i->data)[1].x, static_cast<glm::vec3*>(i->data)[1].y);
             if (x >= bottomLeft.x && x < bottomLeft.x + static_cast<int>(i->overlay->getWidth()) &&
-                y >= bottomLeft.y && y < bottomLeft.y + static_cast<int>(i->overlay->getHeight())) {
+                inverted_y >= bottomLeft.y && inverted_y < bottomLeft.y + static_cast<int>(i->overlay->getHeight())) {
                 if (i->zIndex > max_z_index) {
                     intersected_item = i;
                     max_z_index = i->zIndex;
@@ -102,7 +103,7 @@ void HUD::handleMouseDown(const int &x, const int &y, const MouseButtonState& bu
     }
     if (intersected_item) {
         const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(intersected_item->data)[1].x, static_cast<glm::vec3*>(intersected_item->data)[1].y);
-        intersected_item->overlay->handleMouseDown(x-bottomLeft.x, y-bottomLeft.y, buttons);
+        intersected_item->overlay->handleMouseDown(x-bottomLeft.x, inverted_y-bottomLeft.y, buttons);
     }
     const auto fi = focused_item.lock();
     if (fi && intersected_item != fi) {
@@ -111,22 +112,25 @@ void HUD::handleMouseDown(const int &x, const int &y, const MouseButtonState& bu
     }
 }
 void HUD::handleMouseUp(const int &x, const int &y, const MouseButtonState& buttons) {
+    const int inverted_y = dims.y - y;
     // Workout which items it intersects
     std::shared_ptr<Item> intersected_item;
     int max_z_index = -INT_MAX;
     for (auto &i : stack) {
-        const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(i->data)[1].x, static_cast<glm::vec3*>(i->data)[1].y);
-        if (x >= bottomLeft.x && x < bottomLeft.x + static_cast<int>(i->overlay->getWidth()) &&
-            y >= bottomLeft.y && y < bottomLeft.y + static_cast<int>(i->overlay->getHeight())) {
-            if (i->zIndex > max_z_index) {
-                intersected_item = i;
-                max_z_index = i->zIndex;
+        if (i->overlay->getClickable()) {
+            const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(i->data)[1].x, static_cast<glm::vec3*>(i->data)[1].y);
+            if (x >= bottomLeft.x && x < bottomLeft.x + static_cast<int>(i->overlay->getWidth()) &&
+                inverted_y >= bottomLeft.y && inverted_y < bottomLeft.y + static_cast<int>(i->overlay->getHeight())) {
+                if (i->zIndex > max_z_index) {
+                    intersected_item = i;
+                    max_z_index = i->zIndex;
+                }
             }
         }
     }
     if (intersected_item) {
         const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(intersected_item->data)[1].x, static_cast<glm::vec3*>(intersected_item->data)[1].y);
-        intersected_item->overlay->handleMouseUp(x-bottomLeft.x, y-bottomLeft.y, buttons);
+        intersected_item->overlay->handleMouseUp(x-bottomLeft.x, inverted_y-bottomLeft.y, buttons);
     }
     const auto fi = focused_item.lock();
     if (fi && intersected_item != fi) {
@@ -135,22 +139,25 @@ void HUD::handleMouseUp(const int &x, const int &y, const MouseButtonState& butt
     }
 }
 void HUD::handleMouseDrag(const int &x, const int &y, const MouseButtonState& buttons) {
+    const int inverted_y = dims.y - y;
     // Workout which items it intersects
     std::shared_ptr<Item> intersected_item;
     int max_z_index = -INT_MAX;
     for (auto &i : stack) {
-        const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(i->data)[1].x, static_cast<glm::vec3*>(i->data)[1].y);
-        if (x >= bottomLeft.x && x < bottomLeft.x + static_cast<int>(i->overlay->getWidth()) &&
-            y >= bottomLeft.y && y < bottomLeft.y + static_cast<int>(i->overlay->getHeight())) {
-            if (i->zIndex > max_z_index) {
-                intersected_item = i;
-                max_z_index = i->zIndex;
+        if (i->overlay->getClickable()) {
+            const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(i->data)[1].x, static_cast<glm::vec3*>(i->data)[1].y);
+            if (x >= bottomLeft.x && x < bottomLeft.x + static_cast<int>(i->overlay->getWidth()) &&
+                inverted_y >= bottomLeft.y && inverted_y < bottomLeft.y + static_cast<int>(i->overlay->getHeight())) {
+                if (i->zIndex > max_z_index) {
+                    intersected_item = i;
+                    max_z_index = i->zIndex;
+                }
             }
         }
     }
     if (intersected_item) {
         const glm::ivec2 bottomLeft = glm::ivec2(static_cast<glm::vec3*>(intersected_item->data)[1].x, static_cast<glm::vec3*>(intersected_item->data)[1].y);
-        intersected_item->overlay->handleMouseDrag(x-bottomLeft.x, y-bottomLeft.y, buttons);
+        intersected_item->overlay->handleMouseDrag(x-bottomLeft.x, inverted_y-bottomLeft.y, buttons);
     }
 }
 HUD::Item::Item(std::shared_ptr<Overlay> overlay, const int &x, const int &y, const unsigned int &window_w, const unsigned int &window_h, AnchorV anchorV, AnchorH anchorH, const int &zIndex)

@@ -66,8 +66,8 @@ void BoardOverlay::handleMouseDown(const int &x, const int &y, const MouseButton
         int little_cell_width =  static_cast<int>(thin_line_width + cell_width_height);
 
         // Workout if we are line or background
-        const glm::ivec2 big_cell_index = glm::ivec2(x, y) / big_cell_width;
-        const glm::ivec2 big_cell_offset = glm::ivec2(x, y) - (big_cell_index * big_cell_width) - glm::ivec2(thick_line_width);
+        const glm::ivec2 big_cell_index = glm::ivec2(x, board_width_height - y) / big_cell_width;
+        const glm::ivec2 big_cell_offset = glm::ivec2(x, board_width_height - y) - (big_cell_index * big_cell_width) - glm::ivec2(thick_line_width);
         const glm::ivec2 little_cell_index = big_cell_offset / little_cell_width;
         const glm::ivec2 little_cell_offset = big_cell_offset - (little_cell_index * little_cell_width);
         const glm::ivec2 cell_index = (big_cell_index * 3) + little_cell_index;
