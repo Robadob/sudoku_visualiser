@@ -7,6 +7,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <utility>
 
 #include "Overlay.h"
 #include "freetype/ftglyph.h"
@@ -18,12 +19,15 @@
  */
 class ToggleList : public Overlay {
     struct ToggleItem {
+        ToggleItem(const std::string &_name, std::reference_wrapper<bool> _state)
+            : name(_name)
+            , state(_state) { }
         std::string name;
-        bool state;
+        std::reference_wrapper<bool> state;
         unsigned int index;
-        unsigned int y_offset;
-        int penX;
-        int penY;
+        unsigned int y_offset = 0;
+        int penX = 0;
+        int penY = 0;
         int lineMin = INT_MAX;
         int lineMax = 0;
     };
@@ -70,7 +74,7 @@ class ToggleList : public Overlay {
      * @param items Vector of list items, a copy of this will be taken.
      * @param _fontHeight Height of font in pixels
      */
-    explicit ToggleList(std::vector<std::string> items, const unsigned int _fontHeight = 25);
+    explicit ToggleList(std::vector<std::pair<std::string, std::reference_wrapper<bool>>> items, const unsigned int _fontHeight = 25);
     ~ToggleList();
     bool getState(const std::string &name);
     void setState(const std::string &name, const bool &state);

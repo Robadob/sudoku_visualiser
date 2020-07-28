@@ -25,7 +25,6 @@
 #include "config/AgentStateConfig.h"
 #include "Draw.h"
 #include "Entity.h"
-#include "ToggleList.h"
 
 #include "sudoku/Board.h"
 
@@ -205,7 +204,6 @@ class Visualiser : public ViewportExt {
      */
     unsigned int notification_millis = 2000;
     std::shared_ptr<Text> notificationDisplay;
-    std::shared_ptr<ToggleList> constraintsOptions;
     /**
      * Background thread in which visualiser executes
      * (Timestep independent visualiser)

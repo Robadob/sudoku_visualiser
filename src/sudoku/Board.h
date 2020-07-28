@@ -7,6 +7,9 @@
 #include <stack>
 #include <utility>
 
+
+#include "ConstraintHints.h"
+#include "ToggleList.h"
 #include "sudoku/BoardOverlay.h"
 
 class Visualiser;
@@ -213,6 +216,11 @@ class Board {
 
  private:
     Mode current_mode = Vanilla;
+    /**
+     *
+     */
+    ConstraintHints::VanillaConstraints vanilla_constraints;
+    std::shared_ptr<ToggleList> vanillaConstraintsOptions;
     /**
      * Selected cell, anything out of bounds [1-9][1-9] counts as disabled
      */

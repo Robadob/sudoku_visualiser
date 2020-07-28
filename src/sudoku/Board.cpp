@@ -1,6 +1,7 @@
 #include "Board.h"
 
 #include <fstream>
+#include <vector>
 
 #include <SDL_keycode.h>
 
@@ -58,11 +59,36 @@ std::shared_ptr<BoardOverlay> Board::getOverlay(const unsigned int &dims) {
     if (!overlay) {
         overlay = std::make_shared<BoardOverlay>(*this, dims);
         overlay->selectCell(selected_cell.x, selected_cell.y);
+        {
+            // Convert constraint struct to map
+            std::vector<std::pair<std::string, std::reference_wrapper<bool>>> items;
+            items.push_back({ "Columns", vanilla_constraints.columns });
+            items.push_back({ "Rows", vanilla_constraints.rows });
+            items.push_back({ "Squares", vanilla_constraints.squares });
+            items.push_back({ "Pointing Pair Columns", vanilla_constraints.pointingPairColumns });
+            items.push_back({ "Pointing Pair Rows", vanilla_constraints.pointingPairRows });
+            items.push_back({ "Naked Doubles", vanilla_constraints.nakedDoubles });
+            items.push_back({ "Naked Triples", vanilla_constraints.nakedTriples });
+            items.push_back({ "Hidden Singles", vanilla_constraints.hiddenSingles });
+            items.push_back({ "Hidden Doubles", vanilla_constraints.hiddenDoubles });
+            items.push_back({ "Hidden Triples", vanilla_constraints.hiddenTriples });
+            items.push_back({ "Y-Wing", vanilla_constraints.yWing });
+            items.push_back({ "X-Wing Column", vanilla_constraints.xWingColumn });
+            items.push_back({ "X-Wing Row", vanilla_constraints.xWingRow });
+            vanillaConstraintsOptions = std::make_shared<ToggleList>(items, 25);
+            vanillaConstraintsOptions->setVisible(true);
+            // constraintsOptions->setColor(glm::vec3(0));
+            // constraintsOptions->setBackgroundColor(glm::vec4(0.8f));
+            // constraintsOptions->setUseAA(true);
+            if (visualiser)
+                visualiser->getHUD().lock()->add(vanillaConstraintsOptions, HUD::AnchorV::North, HUD::AnchorH::East, glm::ivec2(0), 1);
+        }
     }
     return overlay;
 }
 void Board::killOverlay() {
     overlay = nullptr;
+    vanillaConstraintsOptions = nullptr;
 }
 bool Board::hasOverlay() const {
     return overlay != nullptr;
@@ -83,6 +109,8 @@ const Board::Pos &Board::getSelectedCell() {
 }
 void Board::setMode(const Mode &mode) {
     current_mode = mode;
+    // Enable the corresponding ui
+    vanillaConstraintsOptions->setVisible(current_mode == Vanilla);
     validate();
 }
 
@@ -244,7 +272,7 @@ void Board::hint(const bool &skipChaining) {
         }
         // Call corresponding hint method
         if (current_mode == Vanilla) {
-            ConstraintHints::vanilla(*this, skipChaining);
+            ConstraintHints::vanilla(*this, vanilla_constraints);
         } else {
             // We didn't do anything, so undo the mark changes and return
             raw_board = undoStack.top();

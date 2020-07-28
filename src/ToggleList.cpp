@@ -7,7 +7,7 @@
 #include "util/fonts.h"
 #include "shader/Shaders.h"
 
-ToggleList::ToggleList(std::vector<std::string> _items, const unsigned int _fontHeight)
+ToggleList::ToggleList(std::vector<std::pair<std::string, std::reference_wrapper<bool>>> _items, const unsigned int _fontHeight)
     : Overlay(std::make_shared<Shaders>(Stock::Shaders::TEXT))
     , fontHeight(_fontHeight)
     , lineSpacing(-0.1f)
@@ -21,8 +21,7 @@ ToggleList::ToggleList(std::vector<std::string> _items, const unsigned int _font
     CHECK_OFF = {};
     CHECK_ON = {};
     for (auto i : _items) {
-        ToggleItem t = {};
-        t.name = i;
+        ToggleItem t(i.first, i.second);
         items.push_back(t);
     }
     redrawList();
@@ -77,7 +76,7 @@ bool ToggleList::getState(const std::string &name) {
 void ToggleList::setState(const std::string &name, const bool &state) {
     for (auto &i : items) {
         if (i.name == name) {
-            i.state = state;
+            i.state.get() = state;
             redrawCheck(i);
             return;
         }
@@ -225,7 +224,7 @@ void ToggleList::handleMouseDown(const int &x, const int &y, const MouseButtonSt
             // Calculate which item it intersects
             if (inverted_y <= item.lineMax && inverted_y >= item.lineMin) {
                 // Toggle item state
-                item.state = !item.state;
+                item.state.get() = !item.state.get();
                 // Send item to redraw
                 redrawCheck(item);
             }

@@ -490,7 +490,7 @@ void xWingRow(Board &board) {
 }
 }  // namespace
 
-void vanilla(Board &board, const bool &skip_chaining) {
+void vanilla(Board &board, const VanillaConstraints &constraints) {
     Board::RawBoard prev_raw_board = {};
     do {
         do {
@@ -498,27 +498,37 @@ void vanilla(Board &board, const bool &skip_chaining) {
                 do {
                     prev_raw_board = board.getRawBoard();
                     // First order hints, is the rule broken directly
-                    columns(board);
-                    rows(board);
-                    squares(board);
+                    if (constraints.columns)
+                        columns(board);
+                    if (constraints.rows)
+                        rows(board);
+                    if (constraints.squares)
+                        squares(board);
                     // Pointing pair columns/rows
                     // Second order hints, does the impact of a column/row rule on a square (3x3 cell collection)
                     // Implicitly prevent a value in a related square
-                    columns2(board);
-                    rows2(board);
+                    if (constraints.pointingPairColumns)
+                        columns2(board);
+                    if (constraints.pointingPairRows)
+                        rows2(board);
                     // Naked doubles/triples
                     // Double: If a mark only appears in 2 cells, with only the same 1 mark, that mark can be removed from other cells in the square
                     // Triple: If a mark only appears in 3 cells, with only the same 2 marks, those 2 marks can be removed from other cells in the square
-                    nakedDoubles(board);
-                    nakedTriples(board);
+                    if (constraints.nakedDoubles)
+                        nakedDoubles(board);
+                    if (constraints.nakedTriples)
+                        nakedTriples(board);
                     // If a mark only appears once in a square, it is the correct value, so remove other marks
-                    hiddenSingles(board);
+                    if (constraints.hiddenSingles)
+                        hiddenSingles(board);
                     // If two marks only appear twice in a square, and they appear in the same cells, remove other marks from these cells
-                    hiddenDoubles(board);
+                    if (constraints.hiddenDoubles)
+                        hiddenDoubles(board);
                     // Same pattern as hiddenSingles(), hiddenDoubles() but for triples
-                    hiddenTriples(board);
+                    if (constraints.hiddenTriples)
+                        hiddenTriples(board);
                 } while (prev_raw_board != board.getRawBoard());
-                if (!skip_chaining) {
+                if (constraints.yWing) {
                     // Chaining
                     // For every cell with only 2 marks, fork the board with the two possibilities
                     // Run hint with chaining disabled
@@ -526,12 +536,12 @@ void vanilla(Board &board, const bool &skip_chaining) {
                     yWing(board);
                 }
             } while (prev_raw_board != board.getRawBoard());
-            if (!skip_chaining) {
+            if (constraints.xWingColumn) {
                 // For every column where a mark only appears twice
                 xWingColumn(board);
             }
         } while (prev_raw_board != board.getRawBoard());
-        if (!skip_chaining) {
+        if (constraints.xWingRow) {
             // For every row where a mark only appears twice
             xWingRow(board);
         }
