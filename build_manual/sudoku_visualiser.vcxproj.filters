@@ -1,0 +1,358 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\config">
+      <UniqueIdentifier>{bb7bb597-3349-4d55-9e55-4c4536137d62}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\camera">
+      <UniqueIdentifier>{82d62df9-7eb1-4ae6-8982-dc230e4527e6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\camera">
+      <UniqueIdentifier>{a245889c-52c3-43b3-b078-e75f26f11e7f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\interface">
+      <UniqueIdentifier>{dbd777b0-45ba-4a38-9bfb-3039980f9d70}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\model">
+      <UniqueIdentifier>{55863dc4-ae5b-48eb-9248-75a848125cce}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\model">
+      <UniqueIdentifier>{3c8ed2cc-d3e7-4b85-9f92-2c264cd8255e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\multipass">
+      <UniqueIdentifier>{b1ec9c79-eb64-4e17-bd02-7106f5b299b7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\multipass">
+      <UniqueIdentifier>{9019e051-51d7-4c61-8c58-80086b597509}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\shader">
+      <UniqueIdentifier>{2383896f-381c-440e-bbe5-13d1d93bc7ab}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shader">
+      <UniqueIdentifier>{391f3773-1208-4c7c-96eb-63c8c76f64b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shader\buffer">
+      <UniqueIdentifier>{baabcdde-69ac-4051-83da-3c65bab7f26d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\shader\lights">
+      <UniqueIdentifier>{a47211f9-c1d9-42fe-b4c3-5d78db32edb7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\shader\buffer">
+      <UniqueIdentifier>{d82c7314-7ada-44aa-8a95-df169fa8ee72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\shader\lights">
+      <UniqueIdentifier>{f13d94e0-ec36-4585-b1f9-dd9de7fd84f3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\sudoku">
+      <UniqueIdentifier>{7d3dfa11-2030-4d94-b9e4-25185d6046a3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sudoku">
+      <UniqueIdentifier>{345135ae-f882-43df-b904-d2cfa666cf24}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\texture">
+      <UniqueIdentifier>{bbccea78-4a76-45f3-9c96-7665fcb4f0fb}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\texture">
+      <UniqueIdentifier>{5365feb4-e395-4faf-98b1-234ebea53a4a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\util">
+      <UniqueIdentifier>{fbf90214-f27d-4c5b-adfa-cd1f1c951ed2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\util">
+      <UniqueIdentifier>{78deb0f2-e18d-499a-b9ea-a2e0901ebece}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\include\config\AgentStateConfig.h">
+      <Filter>Header Files\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\config\LineConfig.h">
+      <Filter>Header Files\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\config\ModelConfig.h">
+      <Filter>Header Files\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\include\config\Stock.h">
+      <Filter>Header Files\config</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\HUD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Overlay.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Sprite2D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Text.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Visualiser.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Axis.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Draw.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\camera\NoClipCamera.h">
+      <Filter>Header Files\camera</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interface\Camera.h">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interface\FBuffer.h">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interface\Reloadable.h">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interface\Renderable.h">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interface\RenderTarget.h">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\interface\Viewport.h">
+      <Filter>Header Files\interface</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\model\Material.h">
+      <Filter>Header Files\model</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\ShaderCore.h">
+      <Filter>Header Files\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\ShaderHeader.h">
+      <Filter>Header Files\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\Shaders.h">
+      <Filter>Header Files\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\ShadersVec.h">
+      <Filter>Header Files\shader</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\lights\DirectionalLight.h">
+      <Filter>Header Files\shader\lights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\lights\LightsBuffer.h">
+      <Filter>Header Files\shader\lights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\lights\PointLight.h">
+      <Filter>Header Files\shader\lights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\lights\SpotLight.h">
+      <Filter>Header Files\shader\lights</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\buffer\ShaderStorageBuffer.h">
+      <Filter>Header Files\shader\buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\buffer\UniformBuffer.h">
+      <Filter>Header Files\shader\buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\shader\buffer\BufferCore.h">
+      <Filter>Header Files\shader\buffer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sudoku\BoardOverlay.h">
+      <Filter>Header Files\sudoku</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sudoku\ConstraintHints.h">
+      <Filter>Header Files\sudoku</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sudoku\ConstraintValidator.h">
+      <Filter>Header Files\sudoku</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\sudoku\Board.h">
+      <Filter>Header Files\sudoku</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\texture\Texture2D.h">
+      <Filter>Header Files\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\texture\Texture2D_Multisample.h">
+      <Filter>Header Files\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\texture\TextureBuffer.h">
+      <Filter>Header Files\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\texture\TextureCubeMap.h">
+      <Filter>Header Files\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\texture\Texture.h">
+      <Filter>Header Files\texture</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\multipass\FrameBufferAttachment.h">
+      <Filter>Header Files\multipass</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\multipass\RenderBuffer.h">
+      <Filter>Header Files\multipass</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\multipass\RenderPass.h">
+      <Filter>Header Files\multipass</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\multipass\BackBuffer.h">
+      <Filter>Header Files\multipass</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\multipass\FrameBuffer.h">
+      <Filter>Header Files\multipass</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util\GLcheck.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util\MouseButtonState.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util\Resources.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util\StringUtils.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util\VisException.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util\warnings.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util\cuda.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+    <ClInclude Include="..\src\util\fonts.h">
+      <Filter>Header Files\util</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\src\HUD.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Overlay.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Sprite2D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Text.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Visualiser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Axis.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Draw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\Entity.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\camera\NoClipCamera.cpp">
+      <Filter>Source Files\camera</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\model\Material.cpp">
+      <Filter>Source Files\model</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shader\ShaderCore.cpp">
+      <Filter>Source Files\shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shader\Shaders.cpp">
+      <Filter>Source Files\shader</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shader\lights\LightsBuffer.cpp">
+      <Filter>Source Files\shader\lights</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shader\buffer\BufferCore.cpp">
+      <Filter>Source Files\shader\buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shader\buffer\ShaderStorageBuffer.cpp">
+      <Filter>Source Files\shader\buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\shader\buffer\UniformBuffer.cpp">
+      <Filter>Source Files\shader\buffer</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sudoku\Board.cpp">
+      <Filter>Source Files\sudoku</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sudoku\BoardOverlay.cpp">
+      <Filter>Source Files\sudoku</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sudoku\ConstraintHints.cpp">
+      <Filter>Source Files\sudoku</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sudoku\ConstraintValidator.cpp">
+      <Filter>Source Files\sudoku</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\sudoku\main.cpp">
+      <Filter>Source Files\sudoku</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\texture\Texture2D_Multisample.cpp">
+      <Filter>Source Files\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\texture\TextureBuffer.cu.cpp">
+      <Filter>Source Files\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\texture\TextureCubeMap.cpp">
+      <Filter>Source Files\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\texture\Texture.cpp">
+      <Filter>Source Files\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\texture\Texture2D.cpp">
+      <Filter>Source Files\texture</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\multipass\FrameBuffer.cpp">
+      <Filter>Source Files\multipass</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\multipass\RenderBuffer.cpp">
+      <Filter>Source Files\multipass</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\multipass\RenderPass.cpp">
+      <Filter>Source Files\multipass</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\multipass\BackBuffer.cpp">
+      <Filter>Source Files\multipass</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\fonts.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\Resources.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+    <ClCompile Include="..\src\util\VisException.cpp">
+      <Filter>Source Files\util</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\src\shader\lights\PointLight.inl">
+      <Filter>Source Files\shader\lights</Filter>
+    </None>
+    <None Include="..\src\shader\lights\SpotLight.inl">
+      <Filter>Source Files\shader\lights</Filter>
+    </None>
+    <None Include="..\src\shader\lights\DirectionalLight.inl">
+      <Filter>Source Files\shader\lights</Filter>
+    </None>
+    <None Include="..\src\util\cuda.cu">
+      <Filter>Source Files\util</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="application_icon.rc">
+      <Filter>Resource Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
